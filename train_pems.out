@@ -1,0 +1,5 @@
+nohup: 忽略输入
+Traceback (most recent call last):
+  File "train.py", line 5, in <module>
+    from torch_geometric.data import DataLoader
+ModuleNotFoundError: No module named 'torch_geometric'

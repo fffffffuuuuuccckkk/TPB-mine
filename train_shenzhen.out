@@ -1,0 +1,406 @@
+nohup: 忽略输入
+2026-05-07 15:31:17 Forecasting target_days = 2
+INFO: GPU : 0
+{'data': {'data_keys': ['metr-la', 'pems-bay', 'shenzhen', 'chengdu_m'], 'metr-la': {'dataset_path': 'data/metr-la/dataset_expand.npy', 'adjacency_matrix_path': 'data/metr-la/matrix.npy', 'time_step': 34272, 'node_num': 207, 'speed_mean': 58.465786, 'speed_std': 12.905341}, 'pems-bay': {'dataset_path': 'data/pems-bay/dataset_expand.npy', 'adjacency_matrix_path': 'data/pems-bay/matrix.npy', 'time_step': 52116, 'node_num': 325, 'speed_mean': 62.621582859, 'speed_std': 9.58811369696}, 'chengdu_m': {'dataset_path': 'data/chengdu_m/dataset_expand.npy', 'adjacency_matrix_path': 'data/chengdu_m/matrix.npy', 'time_step': 17280, 'node_num': 524, 'speed_mean': 29.0982979559, 'speed_std': 9.75304346669}, 'shenzhen': {'dataset_path': 'data/shenzhen/dataset_expand.npy', 'adjacency_matrix_path': 'data/shenzhen/matrix.npy', 'time_step': 17280, 'node_num': 627, 'speed_mean': 30.5735608506, 'speed_std': 11.0922606598}}, 'task': {'mae': {'patch_num': 12, 'his_num': 288, 'pred_num': 0, 'batch_size': 4, 'train_epochs': 1000, 'lr': 0.0001, 'add_target': True}, 'maml': {'his_num': 288, 'pred_num': 12, 'batch_size': 16, 'task_num': 2, 'add_target': True, 'train_epochs': 5, 'finetune_epochs': 400, 'test_dataset': 'shenzhen'}}, 'model': {'mae': {'spectral': False, 'patch_size': 12, 'in_channel': 1, 'out_channel': 128, 'dropout': 0.1, 'window_size': 288, 'mask_size': 24, 'mask_ratio': 0.75, 'L': 4}, 'STnet': {'update_step': 2, 'K': 10, 'update_lr': 0.0005, 'meta_lr': 0.001, 'data_list': 'chengdu_metr_pems'}}}
+INFO: train on ['chengdu_m', 'metr-la', 'pems-bay']. test on shenzhen.
+[INFO] source_train dataset: ['chengdu_m', 'metr-la', 'pems-bay', 'shenzhen']
+dataset_name : chengdu_m
+chengdu_m : x shape : torch.Size([119, 524, 288, 2]), y shape : torch.Size([119, 524, 12])
+dataset_name : metr-la
+metr-la : x shape : torch.Size([118, 207, 288, 2]), y shape : torch.Size([118, 207, 12])
+dataset_name : pems-bay
+pems-bay : x shape : torch.Size([180, 325, 288, 2]), y shape : torch.Size([180, 325, 12])
+dataset_name : shenzhen
+shenzhen : x shape : torch.Size([2, 627, 288, 2]), y shape : torch.Size([2, 627, 12])
+[INFO] Dataset init finished!
+source dataset has chengdu_m. X : torch.Size([119, 524, 288, 2]), y : torch.Size([119, 524, 12])
+source dataset has metr-la. X : torch.Size([118, 207, 288, 2]), y : torch.Size([118, 207, 12])
+source dataset has pems-bay. X : torch.Size([180, 325, 288, 2]), y : torch.Size([180, 325, 12])
+source dataset has shenzhen. X : torch.Size([2, 627, 288, 2]), y : torch.Size([2, 627, 12])
+[INFO] target_maml dataset: ['shenzhen']
+dataset_name : shenzhen
+shenzhen : x shape : torch.Size([48, 627, 288, 2]), y shape : torch.Size([48, 627, 12])
+[INFO] Dataset init finished!
+[INFO] test dataset: ['shenzhen']
+dataset_name : shenzhen
+shenzhen : x shape : torch.Size([2784, 627, 288, 2]), y shape : torch.Size([2784, 627, 12])
+[INFO] Dataset init finished!
+{'data_keys': ['metr-la', 'pems-bay', 'shenzhen', 'chengdu_m'], 'metr-la': {'dataset_path': 'data/metr-la/dataset_expand.npy', 'adjacency_matrix_path': 'data/metr-la/matrix.npy', 'time_step': 34272, 'node_num': 207, 'speed_mean': 58.465786, 'speed_std': 12.905341}, 'pems-bay': {'dataset_path': 'data/pems-bay/dataset_expand.npy', 'adjacency_matrix_path': 'data/pems-bay/matrix.npy', 'time_step': 52116, 'node_num': 325, 'speed_mean': 62.621582859, 'speed_std': 9.58811369696}, 'chengdu_m': {'dataset_path': 'data/chengdu_m/dataset_expand.npy', 'adjacency_matrix_path': 'data/chengdu_m/matrix.npy', 'time_step': 17280, 'node_num': 524, 'speed_mean': 29.0982979559, 'speed_std': 9.75304346669}, 'shenzhen': {'dataset_path': 'data/shenzhen/dataset_expand.npy', 'adjacency_matrix_path': 'data/shenzhen/matrix.npy', 'time_step': 17280, 'node_num': 627, 'speed_mean': 30.5735608506, 'speed_std': 11.0922606598}} {'mae': {'patch_num': 12, 'his_num': 288, 'pred_num': 0, 'batch_size': 4, 'train_epochs': 1000, 'lr': 0.0001, 'add_target': True}, 'maml': {'his_num': 288, 'pred_num': 12, 'batch_size': 16, 'task_num': 2, 'add_target': True, 'train_epochs': 5, 'finetune_epochs': 400, 'test_dataset': 'shenzhen'}} {'mae': {'spectral': False, 'patch_size': 12, 'in_channel': 1, 'out_channel': 128, 'dropout': 0.1, 'window_size': 288, 'mask_size': 24, 'mask_ratio': 0.75, 'L': 4}, 'STnet': {'update_step': 2, 'K': 10, 'update_lr': 0.0005, 'meta_lr': 0.001, 'data_list': 'chengdu_metr_pems'}} {'data_list': 'chengdu_metr_pems', 'sim': 'cosine', 'K': 10, 'patch_encoder': 'pattern', 'base_dir': PosixPath('/data/OuXiaoyu/TPB-master'), 'device': device(type='cuda', index=0)} GWN
+/data/OuXiaoyu/TPB-master/./model/Meta_Models/rep_model_final.py:40: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  pattern = torch.load(PatchFSL_cfg['base_dir'] / 'pattern/{}/{}_{}_cl.pt'.format(PatchFSL_cfg["data_list"],PatchFSL_cfg["sim"],PatchFSL_cfg["K"]))
+/data/OuXiaoyu/miniconda3/envs/tslib/lib/python3.8/site-packages/torch/nn/modules/transformer.py:307: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.self_attn.batch_first was not True(use batch_first for better inference performance)
+  warnings.warn(f"enable_nested_tensor is True, but self.use_nested_tensor is False because {why_not_sparsity_fast_path}")
+[INFO]Pattern_Day has 99584 params, STmodel has 348352 params, FCmodel has 50956 params, Reconsmodel has 49536 params, Pattern_Encoder has 19456 params
+model_list.0.layers.0.self_attn.in_proj_weight : torch.Size([384, 128]), require_grads : True
+model_list.0.layers.0.self_attn.in_proj_bias : torch.Size([384]), require_grads : True
+model_list.0.layers.0.self_attn.out_proj.weight : torch.Size([128, 128]), require_grads : True
+model_list.0.layers.0.self_attn.out_proj.bias : torch.Size([128]), require_grads : True
+model_list.0.layers.0.linear1.weight : torch.Size([128, 128]), require_grads : True
+model_list.0.layers.0.linear1.bias : torch.Size([128]), require_grads : True
+model_list.0.layers.0.linear2.weight : torch.Size([128, 128]), require_grads : True
+model_list.0.layers.0.linear2.bias : torch.Size([128]), require_grads : True
+model_list.0.layers.0.norm1.weight : torch.Size([128]), require_grads : True
+model_list.0.layers.0.norm1.bias : torch.Size([128]), require_grads : True
+model_list.0.layers.0.norm2.weight : torch.Size([128]), require_grads : True
+model_list.0.layers.0.norm2.bias : torch.Size([128]), require_grads : True
+model_list.1.qry_mat : torch.Size([128, 10]), require_grads : True
+model_list.1.Qnet.weight : torch.Size([128, 12]), require_grads : True
+model_list.1.Qnet.bias : torch.Size([128]), require_grads : True
+model_list.1.Knet.weight : torch.Size([128, 128]), require_grads : True
+model_list.1.Knet.bias : torch.Size([128]), require_grads : True
+model_list.2.filter_convs.0.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.filter_convs.0.bias : torch.Size([32]), require_grads : True
+model_list.2.filter_convs.1.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.filter_convs.1.bias : torch.Size([32]), require_grads : True
+model_list.2.filter_convs.2.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.filter_convs.2.bias : torch.Size([32]), require_grads : True
+model_list.2.filter_convs.3.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.filter_convs.3.bias : torch.Size([32]), require_grads : True
+model_list.2.filter_convs.4.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.filter_convs.4.bias : torch.Size([32]), require_grads : True
+model_list.2.filter_convs.5.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.filter_convs.5.bias : torch.Size([32]), require_grads : True
+model_list.2.filter_convs.6.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.filter_convs.6.bias : torch.Size([32]), require_grads : True
+model_list.2.filter_convs.7.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.filter_convs.7.bias : torch.Size([32]), require_grads : True
+model_list.2.gate_convs.0.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.gate_convs.0.bias : torch.Size([32]), require_grads : True
+model_list.2.gate_convs.1.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.gate_convs.1.bias : torch.Size([32]), require_grads : True
+model_list.2.gate_convs.2.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.gate_convs.2.bias : torch.Size([32]), require_grads : True
+model_list.2.gate_convs.3.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.gate_convs.3.bias : torch.Size([32]), require_grads : True
+model_list.2.gate_convs.4.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.gate_convs.4.bias : torch.Size([32]), require_grads : True
+model_list.2.gate_convs.5.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.gate_convs.5.bias : torch.Size([32]), require_grads : True
+model_list.2.gate_convs.6.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.gate_convs.6.bias : torch.Size([32]), require_grads : True
+model_list.2.gate_convs.7.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.gate_convs.7.bias : torch.Size([32]), require_grads : True
+model_list.2.residual_convs.0.weight : torch.Size([32, 32, 1, 1]), require_grads : True
+model_list.2.residual_convs.0.bias : torch.Size([32]), require_grads : True
+model_list.2.residual_convs.1.weight : torch.Size([32, 32, 1, 1]), require_grads : True
+model_list.2.residual_convs.1.bias : torch.Size([32]), require_grads : True
+model_list.2.residual_convs.2.weight : torch.Size([32, 32, 1, 1]), require_grads : True
+model_list.2.residual_convs.2.bias : torch.Size([32]), require_grads : True
+model_list.2.residual_convs.3.weight : torch.Size([32, 32, 1, 1]), require_grads : True
+model_list.2.residual_convs.3.bias : torch.Size([32]), require_grads : True
+model_list.2.residual_convs.4.weight : torch.Size([32, 32, 1, 1]), require_grads : True
+model_list.2.residual_convs.4.bias : torch.Size([32]), require_grads : True
+model_list.2.residual_convs.5.weight : torch.Size([32, 32, 1, 1]), require_grads : True
+model_list.2.residual_convs.5.bias : torch.Size([32]), require_grads : True
+model_list.2.residual_convs.6.weight : torch.Size([32, 32, 1, 1]), require_grads : True
+model_list.2.residual_convs.6.bias : torch.Size([32]), require_grads : True
+model_list.2.residual_convs.7.weight : torch.Size([32, 32, 1, 1]), require_grads : True
+model_list.2.residual_convs.7.bias : torch.Size([32]), require_grads : True
+model_list.2.skip_convs.0.weight : torch.Size([256, 32, 1, 1]), require_grads : True
+model_list.2.skip_convs.0.bias : torch.Size([256]), require_grads : True
+model_list.2.skip_convs.1.weight : torch.Size([256, 32, 1, 1]), require_grads : True
+model_list.2.skip_convs.1.bias : torch.Size([256]), require_grads : True
+model_list.2.skip_convs.2.weight : torch.Size([256, 32, 1, 1]), require_grads : True
+model_list.2.skip_convs.2.bias : torch.Size([256]), require_grads : True
+model_list.2.skip_convs.3.weight : torch.Size([256, 32, 1, 1]), require_grads : True
+model_list.2.skip_convs.3.bias : torch.Size([256]), require_grads : True
+model_list.2.skip_convs.4.weight : torch.Size([256, 32, 1, 1]), require_grads : True
+model_list.2.skip_convs.4.bias : torch.Size([256]), require_grads : True
+model_list.2.skip_convs.5.weight : torch.Size([256, 32, 1, 1]), require_grads : True
+model_list.2.skip_convs.5.bias : torch.Size([256]), require_grads : True
+model_list.2.skip_convs.6.weight : torch.Size([256, 32, 1, 1]), require_grads : True
+model_list.2.skip_convs.6.bias : torch.Size([256]), require_grads : True
+model_list.2.skip_convs.7.weight : torch.Size([256, 32, 1, 1]), require_grads : True
+model_list.2.skip_convs.7.bias : torch.Size([256]), require_grads : True
+model_list.2.bn.0.weight : torch.Size([32]), require_grads : True
+model_list.2.bn.0.bias : torch.Size([32]), require_grads : True
+model_list.2.bn.1.weight : torch.Size([32]), require_grads : True
+model_list.2.bn.1.bias : torch.Size([32]), require_grads : True
+model_list.2.bn.2.weight : torch.Size([32]), require_grads : True
+model_list.2.bn.2.bias : torch.Size([32]), require_grads : True
+model_list.2.bn.3.weight : torch.Size([32]), require_grads : True
+model_list.2.bn.3.bias : torch.Size([32]), require_grads : True
+model_list.2.bn.4.weight : torch.Size([32]), require_grads : True
+model_list.2.bn.4.bias : torch.Size([32]), require_grads : True
+model_list.2.bn.5.weight : torch.Size([32]), require_grads : True
+model_list.2.bn.5.bias : torch.Size([32]), require_grads : True
+model_list.2.bn.6.weight : torch.Size([32]), require_grads : True
+model_list.2.bn.6.bias : torch.Size([32]), require_grads : True
+model_list.2.bn.7.weight : torch.Size([32]), require_grads : True
+model_list.2.bn.7.bias : torch.Size([32]), require_grads : True
+model_list.2.gconv.0.mlp.mlp.weight : torch.Size([32, 160, 1, 1]), require_grads : True
+model_list.2.gconv.0.mlp.mlp.bias : torch.Size([32]), require_grads : True
+model_list.2.gconv.1.mlp.mlp.weight : torch.Size([32, 160, 1, 1]), require_grads : True
+model_list.2.gconv.1.mlp.mlp.bias : torch.Size([32]), require_grads : True
+model_list.2.gconv.2.mlp.mlp.weight : torch.Size([32, 160, 1, 1]), require_grads : True
+model_list.2.gconv.2.mlp.mlp.bias : torch.Size([32]), require_grads : True
+model_list.2.gconv.3.mlp.mlp.weight : torch.Size([32, 160, 1, 1]), require_grads : True
+model_list.2.gconv.3.mlp.mlp.bias : torch.Size([32]), require_grads : True
+model_list.2.gconv.4.mlp.mlp.weight : torch.Size([32, 160, 1, 1]), require_grads : True
+model_list.2.gconv.4.mlp.mlp.bias : torch.Size([32]), require_grads : True
+model_list.2.gconv.5.mlp.mlp.weight : torch.Size([32, 160, 1, 1]), require_grads : True
+model_list.2.gconv.5.mlp.mlp.bias : torch.Size([32]), require_grads : True
+model_list.2.gconv.6.mlp.mlp.weight : torch.Size([32, 160, 1, 1]), require_grads : True
+model_list.2.gconv.6.mlp.mlp.bias : torch.Size([32]), require_grads : True
+model_list.2.gconv.7.mlp.mlp.weight : torch.Size([32, 160, 1, 1]), require_grads : True
+model_list.2.gconv.7.mlp.mlp.bias : torch.Size([32]), require_grads : True
+model_list.2.start_conv.weight : torch.Size([32, 1, 1, 1]), require_grads : True
+model_list.2.start_conv.bias : torch.Size([32]), require_grads : True
+model_list.2.end_conv_1.weight : torch.Size([512, 256, 1, 1]), require_grads : True
+model_list.2.end_conv_1.bias : torch.Size([512]), require_grads : True
+model_list.2.end_conv_2.weight : torch.Size([128, 512, 1, 1]), require_grads : True
+model_list.2.end_conv_2.bias : torch.Size([128]), require_grads : True
+model_list.3.model.0.weight : torch.Size([128, 256]), require_grads : True
+model_list.3.model.0.bias : torch.Size([128]), require_grads : True
+model_list.3.model.3.weight : torch.Size([128, 128]), require_grads : True
+model_list.3.model.3.bias : torch.Size([128]), require_grads : True
+model_list.3.model.6.weight : torch.Size([12, 128]), require_grads : True
+model_list.3.model.6.bias : torch.Size([12]), require_grads : True
+model_list.4.model.weight : torch.Size([128, 128]), require_grads : True
+model_list.4.model.bias : torch.Size([128]), require_grads : True
+model_list.4.Qnet.weight : torch.Size([128, 128]), require_grads : True
+model_list.4.Qnet.bias : torch.Size([128]), require_grads : True
+model_list.4.Knet.weight : torch.Size([128, 128]), require_grads : True
+model_list.4.Knet.bias : torch.Size([128]), require_grads : True
+model params:  567884
+----------------------
+/data/OuXiaoyu/TPB-master/./model/Meta_Models/rep_model_final.py:244: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  A_gnd = torch.tensor(A_gnd,dtype=torch.float32).to(self.device)
+/data/OuXiaoyu/TPB-master/./model/Meta_Models/rep_model_final.py:84: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  x, y, means, stds, A = torch.tensor(x).to(self.PatchFSL_cfg['device']), torch.tensor(y).to(self.PatchFSL_cfg['device']),torch.tensor(means).to(self.PatchFSL_cfg['device']),torch.tensor(stds).to(self.PatchFSL_cfg['device']),torch.tensor(A,dtype=torch.float32).to(self.PatchFSL_cfg['device'])
+/data/OuXiaoyu/TPB-master/./model/Meta_Models/rep_model_final.py:280: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  A_gnd = torch.tensor(A_gnd,dtype=torch.float32).to(self.device)
+Epochs 0/5
+in meta-training   Unnormed MSE : 54.66431, RMSE : 7.01781, MAE : 5.37360, MAPE: 0.12449, reconstruction Loss : 111.01047.
+This epoch cost 0.616s.
+----------------------
+Epochs 1/5
+in meta-training   Unnormed MSE : 51.73943, RMSE : 6.78581, MAE : 5.14399, MAPE: 0.12060, reconstruction Loss : 104.54636.
+This epoch cost 0.461s.
+----------------------
+Epochs 2/5
+in meta-training   Unnormed MSE : 49.03468, RMSE : 6.56282, MAE : 4.92583, MAPE: 0.11701, reconstruction Loss : 98.78970.
+This epoch cost 0.459s.
+----------------------
+Epochs 3/5
+in meta-training   Unnormed MSE : 46.34335, RMSE : 6.33155, MAE : 4.69982, MAPE: 0.11340, reconstruction Loss : 93.14845.
+This epoch cost 0.461s.
+----------------------
+Epochs 4/5
+in meta-training   Unnormed MSE : 43.76487, RMSE : 6.09988, MAE : 4.47626, MAPE: 0.10992, reconstruction Loss : 87.74960.
+This epoch cost 0.458s.
+Finetuned model saved in save/meta_model/chengdu_metr_pems/20260507-153123
+[INFO] Enter finetune phase
+----------------------
+/data/OuXiaoyu/TPB-master/./model/Meta_Models/rep_model_final.py:371: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  A_gnd = torch.tensor(A_gnd,dtype=torch.float32).to(self.device)
+Epochs 0/400
+in training   Unnormed MSE : 114.44540, RMSE : 10.68645, MAE : 8.03930, MAPE: 0.32328, normed MSE : 114.44541.
+Best model. Saved.
+this epoch costs 0.33536s
+----------------------
+Epochs 1/400
+in training   Unnormed MSE : 79.37476, RMSE : 8.87737, MAE : 6.06178, MAPE: 0.23327, normed MSE : 79.37476.
+Best model. Saved.
+this epoch costs 0.32498s
+----------------------
+Epochs 2/400
+in training   Unnormed MSE : 42.58069, RMSE : 6.52069, MAE : 4.55860, MAPE: 0.16544, normed MSE : 42.58069.
+Best model. Saved.
+this epoch costs 0.31811s
+----------------------
+Epochs 3/400
+in training   Unnormed MSE : 31.50918, RMSE : 5.59516, MAE : 4.15515, MAPE: 0.15025, normed MSE : 31.50918.
+Best model. Saved.
+this epoch costs 0.31269s
+----------------------
+Epochs 4/400
+in training   Unnormed MSE : 24.89047, RMSE : 4.98638, MAE : 3.48616, MAPE: 0.14204, normed MSE : 24.89047.
+Best model. Saved.
+this epoch costs 0.31973s
+----------------------
+Epochs 5/400
+in training   Unnormed MSE : 23.62128, RMSE : 4.85936, MAE : 3.43186, MAPE: 0.14332, normed MSE : 23.62128.
+Best model. Saved.
+this epoch costs 0.32196s
+----------------------
+Epochs 6/400
+in training   Unnormed MSE : 19.21791, RMSE : 4.38160, MAE : 3.12802, MAPE: 0.12127, normed MSE : 19.21791.
+Best model. Saved.
+this epoch costs 0.31912s
+----------------------
+Epochs 7/400
+in training   Unnormed MSE : 18.12006, RMSE : 4.25472, MAE : 3.02487, MAPE: 0.11525, normed MSE : 18.12006.
+Best model. Saved.
+this epoch costs 0.32038s
+----------------------
+Epochs 8/400
+in training   Unnormed MSE : 16.90561, RMSE : 4.10728, MAE : 2.85982, MAPE: 0.11336, normed MSE : 16.90561.
+Best model. Saved.
+this epoch costs 0.31899s
+----------------------
+Epochs 9/400
+in training   Unnormed MSE : 16.40118, RMSE : 4.04781, MAE : 2.77838, MAPE: 0.10716, normed MSE : 16.40118.
+Best model. Saved.
+this epoch costs 0.31302s
+----------------------
+Epochs 10/400
+in training   Unnormed MSE : 15.60495, RMSE : 3.94953, MAE : 2.71920, MAPE: 0.10264, normed MSE : 15.60495.
+Best model. Saved.
+this epoch costs 0.31392s
+----------------------
+Epochs 11/400
+in training   Unnormed MSE : 15.62522, RMSE : 3.95066, MAE : 2.70963, MAPE: 0.10600, normed MSE : 15.62522.
+Best model. Saved.
+this epoch costs 0.3141s
+----------------------
+Epochs 12/400
+in training   Unnormed MSE : 15.68378, RMSE : 3.95850, MAE : 2.71847, MAPE: 0.10303, normed MSE : 15.68378.
+this epoch costs 0.30655s
+----------------------
+Epochs 13/400
+in training   Unnormed MSE : 15.74400, RMSE : 3.96631, MAE : 2.68744, MAPE: 0.10542, normed MSE : 15.74400.
+Best model. Saved.
+this epoch costs 0.35777s
+----------------------
+Epochs 14/400
+in training   Unnormed MSE : 15.08736, RMSE : 3.88005, MAE : 2.66874, MAPE: 0.10280, normed MSE : 15.08736.
+Best model. Saved.
+this epoch costs 0.31812s
+----------------------
+Epochs 15/400
+in training   Unnormed MSE : 14.93300, RMSE : 3.86350, MAE : 2.63901, MAPE: 0.10018, normed MSE : 14.93300.
+Best model. Saved.
+this epoch costs 0.32007s
+----------------------
+Epochs 16/400
+in training   Unnormed MSE : 14.90681, RMSE : 3.85373, MAE : 2.65257, MAPE: 0.10429, normed MSE : 14.90681.
+this epoch costs 0.30438s
+----------------------
+Epochs 17/400
+in training   Unnormed MSE : 14.18741, RMSE : 3.76350, MAE : 2.60820, MAPE: 0.09900, normed MSE : 14.18741.
+Best model. Saved.
+this epoch costs 0.31763s
+----------------------
+Epochs 18/400
+in training   Unnormed MSE : 14.59052, RMSE : 3.81454, MAE : 2.63289, MAPE: 0.10408, normed MSE : 14.59052.
+this epoch costs 0.30936s
+----------------------
+Epochs 19/400
+in training   Unnormed MSE : 14.23325, RMSE : 3.77250, MAE : 2.55149, MAPE: 0.10135, normed MSE : 14.23325.
+Best model. Saved.
+this epoch costs 0.31858s
+----------------------
+Epochs 20/400
+in training   Unnormed MSE : 13.66053, RMSE : 3.69092, MAE : 2.61143, MAPE: 0.09652, normed MSE : 13.66053.
+this epoch costs 0.30766s
+----------------------
+Epochs 21/400
+in training   Unnormed MSE : 15.30114, RMSE : 3.91089, MAE : 2.65673, MAPE: 0.10792, normed MSE : 15.30114.
+this epoch costs 0.30169s
+----------------------
+Epochs 22/400
+in training   Unnormed MSE : 13.48888, RMSE : 3.66957, MAE : 2.50978, MAPE: 0.09066, normed MSE : 13.48888.
+Best model. Saved.
+this epoch costs 0.31106s
+----------------------
+Epochs 23/400
+in training   Unnormed MSE : 12.60283, RMSE : 3.54469, MAE : 2.42312, MAPE: 0.09300, normed MSE : 12.60283.
+Best model. Saved.
+this epoch costs 0.31079s
+----------------------
+Epochs 24/400
+in training   Unnormed MSE : 14.01067, RMSE : 3.74154, MAE : 2.55345, MAPE: 0.09789, normed MSE : 14.01067.
+this epoch costs 0.3039s
+----------------------
+Epochs 25/400
+in training   Unnormed MSE : 13.35086, RMSE : 3.65384, MAE : 2.50054, MAPE: 0.09645, normed MSE : 13.35086.
+this epoch costs 0.3061s
+----------------------
+Epochs 26/400
+in training   Unnormed MSE : 13.98569, RMSE : 3.73844, MAE : 2.52428, MAPE: 0.09923, normed MSE : 13.98569.
+this epoch costs 0.30584s
+----------------------
+Epochs 27/400
+in training   Unnormed MSE : 14.48755, RMSE : 3.80022, MAE : 2.56265, MAPE: 0.10168, normed MSE : 14.48755.
+this epoch costs 0.30682s
+----------------------
+Epochs 28/400
+in training   Unnormed MSE : 12.14597, RMSE : 3.48478, MAE : 2.36759, MAPE: 0.09381, normed MSE : 12.14597.
+Best model. Saved.
+this epoch costs 0.32058s
+----------------------
+Epochs 29/400
+in training   Unnormed MSE : 13.30270, RMSE : 3.64519, MAE : 2.44528, MAPE: 0.09465, normed MSE : 13.30270.
+this epoch costs 0.30701s
+----------------------
+Epochs 30/400
+in training   Unnormed MSE : 13.48487, RMSE : 3.66793, MAE : 2.50149, MAPE: 0.09291, normed MSE : 13.48487.
+this epoch costs 0.30751s
+----------------------
+Epochs 31/400
+in training   Unnormed MSE : 13.12775, RMSE : 3.61647, MAE : 2.43561, MAPE: 0.09788, normed MSE : 13.12775.
+this epoch costs 0.30384s
+----------------------
+Epochs 32/400
+in training   Unnormed MSE : 15.01382, RMSE : 3.87314, MAE : 2.68432, MAPE: 0.10208, normed MSE : 15.01382.
+this epoch costs 0.30704s
+----------------------
+Epochs 33/400
+in training   Unnormed MSE : 13.09820, RMSE : 3.61731, MAE : 2.45043, MAPE: 0.09805, normed MSE : 13.09820.
+this epoch costs 0.30464s
+----------------------
+Epochs 34/400
+in training   Unnormed MSE : 12.86909, RMSE : 3.58630, MAE : 2.46465, MAPE: 0.09412, normed MSE : 12.86909.
+this epoch costs 0.30476s
+----------------------
+Epochs 35/400
+in training   Unnormed MSE : 12.55459, RMSE : 3.54135, MAE : 2.40758, MAPE: 0.09492, normed MSE : 12.55459.
+this epoch costs 0.30511s
+----------------------
+Epochs 36/400
+in training   Unnormed MSE : 12.56690, RMSE : 3.54419, MAE : 2.47178, MAPE: 0.09516, normed MSE : 12.56690.
+this epoch costs 0.30647s
+----------------------
+Epochs 37/400
+in training   Unnormed MSE : 12.75004, RMSE : 3.56711, MAE : 2.44520, MAPE: 0.09267, normed MSE : 12.75004.
+this epoch costs 0.30821s
+----------------------
+Epochs 38/400
+in training   Unnormed MSE : 12.40493, RMSE : 3.52166, MAE : 2.39819, MAPE: 0.09459, normed MSE : 12.40493.
+this epoch costs 0.30499s
+----------------------
+Epochs 39/400
+in training   Unnormed MSE : 12.44441, RMSE : 3.52749, MAE : 2.45421, MAPE: 0.09432, normed MSE : 12.44441.
+this epoch costs 0.30308s
+----------------------
+Epochs 40/400
+in training   Unnormed MSE : 11.96027, RMSE : 3.45806, MAE : 2.35519, MAPE: 0.09626, normed MSE : 11.96027.
+Best model. Saved.
+this epoch costs 0.32754s
+----------------------
+Epochs 41/400
+in training   Unnormed MSE : 12.74401, RMSE : 3.56981, MAE : 2.46631, MAPE: 0.09084, normed MSE : 12.74401.
+this epoch costs 0.30716s
+----------------------
+Epochs 42/400
+in training   Unnormed MSE : 14.09990, RMSE : 3.75137, MAE : 2.55647, MAPE: 0.10165, normed MSE : 14.09990.
+this epoch costs 0.30948s
+----------------------
+Epochs 43/400
+in training   Unnormed MSE : 11.96615, RMSE : 3.45748, MAE : 2.37833, MAPE: 0.09006, normed MSE : 11.96615.
+this epoch costs 0.3057s
+----------------------
+Epochs 44/400
+in training   Unnormed MSE : 11.10196, RMSE : 3.32332, MAE : 2.24450, MAPE: 0.08976, normed MSE : 11.10196.
+Best model. Saved.
+this epoch costs 0.3246s
+----------------------
+Epochs 45/400
+in training   Unnormed MSE : 13.31188, RMSE : 3.64629, MAE : 2.49551, MAPE: 0.09635, normed MSE : 13.31188.
+this epoch costs 0.31064s
+----------------------
+Epochs 46/400
+in training   Unnormed MSE : 11.27840, RMSE : 3.35354, MAE : 2.30545, MAPE: 0.08738, normed MSE : 11.27840.
+this epoch costs 0.30615s
+----------------------

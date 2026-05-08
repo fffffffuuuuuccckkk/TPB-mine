@@ -1,0 +1,49 @@
+onlypatternib:Average Unnormed MSE: 20.43882
+Average RMSE: 4.30654
+Average MAE: 2.30354
+Average MAPE: 0.04867
+
+onlymetaib:Average Unnormed MSE: 19.87928
+Average RMSE: 4.26258
+Average MAE: 2.15380
+Average MAPE: 0.04971
+
+usetwoibloss:Average Unnormed MSE: 21.20567
+Average RMSE: 4.36921
+Average MAE: 2.16920
+Average MAPE: 0.05203
+
+original:Average Unnormed MSE: 20.22182
+Average RMSE: 4.27435
+Average MAE: 2.09665
+Average MAPE: 0.04983
+
+weakpatternnormalmeta:Average Unnormed MSE: 21.55005
+Average RMSE: 4.44624
+Average MAE: 2.23082
+Average MAPE: 0.05565
+
+patternibnogate:Average Unnormed MSE: 20.54909
+Average RMSE: 4.34489
+Average MAE: 2.23667
+Average MAPE: 0.05341
+
+patternibnotrain:Average Unnormed MSE: 21.08763
+Average RMSE: 4.40504
+Average MAE: 2.21080
+Average MAPE: 0.05482
+
+onlymeta_0.001_16:Average Unnormed MSE: 22.85072
+Average RMSE: 4.52992
+Average MAE: 2.24215
+Average MAPE: 0.05653
+
+onlymeta_0.005_32:Average Unnormed MSE: 21.19900
+Average RMSE: 4.40722
+Average MAE: 2.20697
+Average MAPE: 0.05166
+
+onlymeta_0.001_64:Average Unnormed MSE: 21.98476
+Average RMSE: 4.45145
+Average MAE: 2.24524
+Average MAPE: 0.05356

@@ -1,0 +1,1909 @@
+2026-05-07 22:19:48 Forecasting target_days = 2
+INFO: GPU : 0
+{'data': {'data_keys': ['metr-la', 'pems-bay', 'shenzhen', 'chengdu_m'], 'metr-la': {'dataset_path': 'data/metr-la/dataset_expand.npy', 'adjacency_matrix_path': 'data/metr-la/matrix.npy', 'time_step': 34272, 'node_num': 207, 'speed_mean': 58.465786, 'speed_std': 12.905341}, 'pems-bay': {'dataset_path': 'data/pems-bay/dataset_expand.npy', 'adjacency_matrix_path': 'data/pems-bay/matrix.npy', 'time_step': 52116, 'node_num': 325, 'speed_mean': 62.621582859, 'speed_std': 9.58811369696}, 'chengdu_m': {'dataset_path': 'data/chengdu_m/dataset_expand.npy', 'adjacency_matrix_path': 'data/chengdu_m/matrix.npy', 'time_step': 17280, 'node_num': 524, 'speed_mean': 29.0982979559, 'speed_std': 9.75304346669}, 'shenzhen': {'dataset_path': 'data/shenzhen/dataset_expand.npy', 'adjacency_matrix_path': 'data/shenzhen/matrix.npy', 'time_step': 17280, 'node_num': 627, 'speed_mean': 30.5735608506, 'speed_std': 11.0922606598}}, 'task': {'mae': {'patch_num': 12, 'his_num': 288, 'pred_num': 0, 'batch_size': 4, 'train_epochs': 1000, 'lr': 0.0001, 'add_target': True}, 'maml': {'his_num': 288, 'pred_num': 12, 'batch_size': 16, 'task_num': 2, 'add_target': True, 'train_epochs': 25, 'finetune_epochs': 400, 'test_dataset': 'pems-bay'}}, 'model': {'mae': {'spectral': False, 'patch_size': 12, 'in_channel': 1, 'out_channel': 128, 'dropout': 0.1, 'window_size': 288, 'mask_size': 24, 'mask_ratio': 0.75, 'L': 4}, 'STnet': {'update_step': 2, 'K': 10, 'update_lr': 0.0005, 'meta_lr': 0.001, 'data_list': 'chengdu_shenzhen_metr'}}}
+INFO: train on ['chengdu_m', 'metr-la', 'shenzhen']. test on pems-bay.
+[INFO] source_train dataset: ['chengdu_m', 'metr-la', 'shenzhen', 'pems-bay']
+dataset_name : chengdu_m
+chengdu_m : x shape : torch.Size([119, 524, 288, 2]), y shape : torch.Size([119, 524, 12])
+dataset_name : metr-la
+metr-la : x shape : torch.Size([118, 207, 288, 2]), y shape : torch.Size([118, 207, 12])
+dataset_name : shenzhen
+shenzhen : x shape : torch.Size([119, 627, 288, 2]), y shape : torch.Size([119, 627, 12])
+dataset_name : pems-bay
+pems-bay : x shape : torch.Size([2, 325, 288, 2]), y shape : torch.Size([2, 325, 12])
+[INFO] Dataset init finished!
+source dataset has chengdu_m. X : torch.Size([119, 524, 288, 2]), y : torch.Size([119, 524, 12])
+source dataset has metr-la. X : torch.Size([118, 207, 288, 2]), y : torch.Size([118, 207, 12])
+source dataset has shenzhen. X : torch.Size([119, 627, 288, 2]), y : torch.Size([119, 627, 12])
+source dataset has pems-bay. X : torch.Size([2, 325, 288, 2]), y : torch.Size([2, 325, 12])
+[INFO] target_maml dataset: ['pems-bay']
+dataset_name : pems-bay
+pems-bay : x shape : torch.Size([48, 325, 288, 2]), y shape : torch.Size([48, 325, 12])
+[INFO] Dataset init finished!
+[INFO] test dataset: ['pems-bay']
+dataset_name : pems-bay
+pems-bay : x shape : torch.Size([4247, 325, 288, 2]), y shape : torch.Size([4247, 325, 12])
+[INFO] Dataset init finished!
+{'data_keys': ['metr-la', 'pems-bay', 'shenzhen', 'chengdu_m'], 'metr-la': {'dataset_path': 'data/metr-la/dataset_expand.npy', 'adjacency_matrix_path': 'data/metr-la/matrix.npy', 'time_step': 34272, 'node_num': 207, 'speed_mean': 58.465786, 'speed_std': 12.905341}, 'pems-bay': {'dataset_path': 'data/pems-bay/dataset_expand.npy', 'adjacency_matrix_path': 'data/pems-bay/matrix.npy', 'time_step': 52116, 'node_num': 325, 'speed_mean': 62.621582859, 'speed_std': 9.58811369696}, 'chengdu_m': {'dataset_path': 'data/chengdu_m/dataset_expand.npy', 'adjacency_matrix_path': 'data/chengdu_m/matrix.npy', 'time_step': 17280, 'node_num': 524, 'speed_mean': 29.0982979559, 'speed_std': 9.75304346669}, 'shenzhen': {'dataset_path': 'data/shenzhen/dataset_expand.npy', 'adjacency_matrix_path': 'data/shenzhen/matrix.npy', 'time_step': 17280, 'node_num': 627, 'speed_mean': 30.5735608506, 'speed_std': 11.0922606598}} {'mae': {'patch_num': 12, 'his_num': 288, 'pred_num': 0, 'batch_size': 4, 'train_epochs': 1000, 'lr': 0.0001, 'add_target': True}, 'maml': {'his_num': 288, 'pred_num': 12, 'batch_size': 16, 'task_num': 2, 'add_target': True, 'train_epochs': 25, 'finetune_epochs': 400, 'test_dataset': 'pems-bay'}} {'mae': {'spectral': False, 'patch_size': 12, 'in_channel': 1, 'out_channel': 128, 'dropout': 0.1, 'window_size': 288, 'mask_size': 24, 'mask_ratio': 0.75, 'L': 4}, 'STnet': {'update_step': 2, 'K': 10, 'update_lr': 0.0005, 'meta_lr': 0.001, 'data_list': 'chengdu_shenzhen_metr'}} {'data_list': 'chengdu_shenzhen_metr', 'sim': 'cosine', 'K': 10, 'patch_encoder': 'pattern', 'base_dir': PosixPath('/data/OuXiaoyu/TPB-master'), 'device': device(type='cuda', index=0)} GWN
+[INFO]Pattern_Day has 99584 params, STmodel has 348352 params, FCmodel has 50956 params, Reconsmodel has 49536 params, Pattern_Encoder has 19456 params
+model_list.0.layers.0.self_attn.in_proj_weight : torch.Size([384, 128]), require_grads : True
+model_list.0.layers.0.self_attn.in_proj_bias : torch.Size([384]), require_grads : True
+model_list.0.layers.0.self_attn.out_proj.weight : torch.Size([128, 128]), require_grads : True
+model_list.0.layers.0.self_attn.out_proj.bias : torch.Size([128]), require_grads : True
+model_list.0.layers.0.linear1.weight : torch.Size([128, 128]), require_grads : True
+model_list.0.layers.0.linear1.bias : torch.Size([128]), require_grads : True
+model_list.0.layers.0.linear2.weight : torch.Size([128, 128]), require_grads : True
+model_list.0.layers.0.linear2.bias : torch.Size([128]), require_grads : True
+model_list.0.layers.0.norm1.weight : torch.Size([128]), require_grads : True
+model_list.0.layers.0.norm1.bias : torch.Size([128]), require_grads : True
+model_list.0.layers.0.norm2.weight : torch.Size([128]), require_grads : True
+model_list.0.layers.0.norm2.bias : torch.Size([128]), require_grads : True
+model_list.1.qry_mat : torch.Size([128, 10]), require_grads : True
+model_list.1.Qnet.weight : torch.Size([128, 12]), require_grads : True
+model_list.1.Qnet.bias : torch.Size([128]), require_grads : True
+model_list.1.Knet.weight : torch.Size([128, 128]), require_grads : True
+model_list.1.Knet.bias : torch.Size([128]), require_grads : True
+model_list.2.filter_convs.0.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.filter_convs.0.bias : torch.Size([32]), require_grads : True
+model_list.2.filter_convs.1.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.filter_convs.1.bias : torch.Size([32]), require_grads : True
+model_list.2.filter_convs.2.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.filter_convs.2.bias : torch.Size([32]), require_grads : True
+model_list.2.filter_convs.3.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.filter_convs.3.bias : torch.Size([32]), require_grads : True
+model_list.2.filter_convs.4.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.filter_convs.4.bias : torch.Size([32]), require_grads : True
+model_list.2.filter_convs.5.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.filter_convs.5.bias : torch.Size([32]), require_grads : True
+model_list.2.filter_convs.6.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.filter_convs.6.bias : torch.Size([32]), require_grads : True
+model_list.2.filter_convs.7.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.filter_convs.7.bias : torch.Size([32]), require_grads : True
+model_list.2.gate_convs.0.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.gate_convs.0.bias : torch.Size([32]), require_grads : True
+model_list.2.gate_convs.1.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.gate_convs.1.bias : torch.Size([32]), require_grads : True
+model_list.2.gate_convs.2.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.gate_convs.2.bias : torch.Size([32]), require_grads : True
+model_list.2.gate_convs.3.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.gate_convs.3.bias : torch.Size([32]), require_grads : True
+model_list.2.gate_convs.4.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.gate_convs.4.bias : torch.Size([32]), require_grads : True
+model_list.2.gate_convs.5.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.gate_convs.5.bias : torch.Size([32]), require_grads : True
+model_list.2.gate_convs.6.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.gate_convs.6.bias : torch.Size([32]), require_grads : True
+model_list.2.gate_convs.7.weight : torch.Size([32, 32, 1, 2]), require_grads : True
+model_list.2.gate_convs.7.bias : torch.Size([32]), require_grads : True
+model_list.2.residual_convs.0.weight : torch.Size([32, 32, 1, 1]), require_grads : True
+model_list.2.residual_convs.0.bias : torch.Size([32]), require_grads : True
+model_list.2.residual_convs.1.weight : torch.Size([32, 32, 1, 1]), require_grads : True
+model_list.2.residual_convs.1.bias : torch.Size([32]), require_grads : True
+model_list.2.residual_convs.2.weight : torch.Size([32, 32, 1, 1]), require_grads : True
+model_list.2.residual_convs.2.bias : torch.Size([32]), require_grads : True
+model_list.2.residual_convs.3.weight : torch.Size([32, 32, 1, 1]), require_grads : True
+model_list.2.residual_convs.3.bias : torch.Size([32]), require_grads : True
+model_list.2.residual_convs.4.weight : torch.Size([32, 32, 1, 1]), require_grads : True
+model_list.2.residual_convs.4.bias : torch.Size([32]), require_grads : True
+model_list.2.residual_convs.5.weight : torch.Size([32, 32, 1, 1]), require_grads : True
+model_list.2.residual_convs.5.bias : torch.Size([32]), require_grads : True
+model_list.2.residual_convs.6.weight : torch.Size([32, 32, 1, 1]), require_grads : True
+model_list.2.residual_convs.6.bias : torch.Size([32]), require_grads : True
+model_list.2.residual_convs.7.weight : torch.Size([32, 32, 1, 1]), require_grads : True
+model_list.2.residual_convs.7.bias : torch.Size([32]), require_grads : True
+model_list.2.skip_convs.0.weight : torch.Size([256, 32, 1, 1]), require_grads : True
+model_list.2.skip_convs.0.bias : torch.Size([256]), require_grads : True
+model_list.2.skip_convs.1.weight : torch.Size([256, 32, 1, 1]), require_grads : True
+model_list.2.skip_convs.1.bias : torch.Size([256]), require_grads : True
+model_list.2.skip_convs.2.weight : torch.Size([256, 32, 1, 1]), require_grads : True
+model_list.2.skip_convs.2.bias : torch.Size([256]), require_grads : True
+model_list.2.skip_convs.3.weight : torch.Size([256, 32, 1, 1]), require_grads : True
+model_list.2.skip_convs.3.bias : torch.Size([256]), require_grads : True
+model_list.2.skip_convs.4.weight : torch.Size([256, 32, 1, 1]), require_grads : True
+model_list.2.skip_convs.4.bias : torch.Size([256]), require_grads : True
+model_list.2.skip_convs.5.weight : torch.Size([256, 32, 1, 1]), require_grads : True
+model_list.2.skip_convs.5.bias : torch.Size([256]), require_grads : True
+model_list.2.skip_convs.6.weight : torch.Size([256, 32, 1, 1]), require_grads : True
+model_list.2.skip_convs.6.bias : torch.Size([256]), require_grads : True
+model_list.2.skip_convs.7.weight : torch.Size([256, 32, 1, 1]), require_grads : True
+model_list.2.skip_convs.7.bias : torch.Size([256]), require_grads : True
+model_list.2.bn.0.weight : torch.Size([32]), require_grads : True
+model_list.2.bn.0.bias : torch.Size([32]), require_grads : True
+model_list.2.bn.1.weight : torch.Size([32]), require_grads : True
+model_list.2.bn.1.bias : torch.Size([32]), require_grads : True
+model_list.2.bn.2.weight : torch.Size([32]), require_grads : True
+model_list.2.bn.2.bias : torch.Size([32]), require_grads : True
+model_list.2.bn.3.weight : torch.Size([32]), require_grads : True
+model_list.2.bn.3.bias : torch.Size([32]), require_grads : True
+model_list.2.bn.4.weight : torch.Size([32]), require_grads : True
+model_list.2.bn.4.bias : torch.Size([32]), require_grads : True
+model_list.2.bn.5.weight : torch.Size([32]), require_grads : True
+model_list.2.bn.5.bias : torch.Size([32]), require_grads : True
+model_list.2.bn.6.weight : torch.Size([32]), require_grads : True
+model_list.2.bn.6.bias : torch.Size([32]), require_grads : True
+model_list.2.bn.7.weight : torch.Size([32]), require_grads : True
+model_list.2.bn.7.bias : torch.Size([32]), require_grads : True
+model_list.2.gconv.0.mlp.mlp.weight : torch.Size([32, 160, 1, 1]), require_grads : True
+model_list.2.gconv.0.mlp.mlp.bias : torch.Size([32]), require_grads : True
+model_list.2.gconv.1.mlp.mlp.weight : torch.Size([32, 160, 1, 1]), require_grads : True
+model_list.2.gconv.1.mlp.mlp.bias : torch.Size([32]), require_grads : True
+model_list.2.gconv.2.mlp.mlp.weight : torch.Size([32, 160, 1, 1]), require_grads : True
+model_list.2.gconv.2.mlp.mlp.bias : torch.Size([32]), require_grads : True
+model_list.2.gconv.3.mlp.mlp.weight : torch.Size([32, 160, 1, 1]), require_grads : True
+model_list.2.gconv.3.mlp.mlp.bias : torch.Size([32]), require_grads : True
+model_list.2.gconv.4.mlp.mlp.weight : torch.Size([32, 160, 1, 1]), require_grads : True
+model_list.2.gconv.4.mlp.mlp.bias : torch.Size([32]), require_grads : True
+model_list.2.gconv.5.mlp.mlp.weight : torch.Size([32, 160, 1, 1]), require_grads : True
+model_list.2.gconv.5.mlp.mlp.bias : torch.Size([32]), require_grads : True
+model_list.2.gconv.6.mlp.mlp.weight : torch.Size([32, 160, 1, 1]), require_grads : True
+model_list.2.gconv.6.mlp.mlp.bias : torch.Size([32]), require_grads : True
+model_list.2.gconv.7.mlp.mlp.weight : torch.Size([32, 160, 1, 1]), require_grads : True
+model_list.2.gconv.7.mlp.mlp.bias : torch.Size([32]), require_grads : True
+model_list.2.start_conv.weight : torch.Size([32, 1, 1, 1]), require_grads : True
+model_list.2.start_conv.bias : torch.Size([32]), require_grads : True
+model_list.2.end_conv_1.weight : torch.Size([512, 256, 1, 1]), require_grads : True
+model_list.2.end_conv_1.bias : torch.Size([512]), require_grads : True
+model_list.2.end_conv_2.weight : torch.Size([128, 512, 1, 1]), require_grads : True
+model_list.2.end_conv_2.bias : torch.Size([128]), require_grads : True
+model_list.3.model.0.weight : torch.Size([128, 256]), require_grads : True
+model_list.3.model.0.bias : torch.Size([128]), require_grads : True
+model_list.3.model.3.weight : torch.Size([128, 128]), require_grads : True
+model_list.3.model.3.bias : torch.Size([128]), require_grads : True
+model_list.3.model.6.weight : torch.Size([12, 128]), require_grads : True
+model_list.3.model.6.bias : torch.Size([12]), require_grads : True
+model_list.4.model.weight : torch.Size([128, 128]), require_grads : True
+model_list.4.model.bias : torch.Size([128]), require_grads : True
+model_list.4.Qnet.weight : torch.Size([128, 128]), require_grads : True
+model_list.4.Qnet.bias : torch.Size([128]), require_grads : True
+model_list.4.Knet.weight : torch.Size([128, 128]), require_grads : True
+model_list.4.Knet.bias : torch.Size([128]), require_grads : True
+model params:  567884
+----------------------
+Epochs 0/25
+in meta-training   Unnormed MSE : 88.97389, RMSE : 9.43186, MAE : 7.00322, MAPE: 0.17195, reconstruction Loss : 179.96867.
+This epoch cost 0.626s.
+----------------------
+Epochs 1/25
+in meta-training   Unnormed MSE : 85.45654, RMSE : 9.24365, MAE : 6.77927, MAPE: 0.16799, reconstruction Loss : 172.70552.
+This epoch cost 0.459s.
+----------------------
+Epochs 2/25
+in meta-training   Unnormed MSE : 81.84421, RMSE : 9.04621, MAE : 6.54154, MAPE: 0.16375, reconstruction Loss : 165.44438.
+This epoch cost 0.457s.
+----------------------
+Epochs 3/25
+in meta-training   Unnormed MSE : 77.66532, RMSE : 8.81233, MAE : 6.25610, MAPE: 0.15854, reconstruction Loss : 157.29794.
+This epoch cost 0.456s.
+----------------------
+Epochs 4/25
+in meta-training   Unnormed MSE : 73.00877, RMSE : 8.54400, MAE : 5.92277, MAPE: 0.15233, reconstruction Loss : 148.17703.
+This epoch cost 0.452s.
+----------------------
+Epochs 5/25
+in meta-training   Unnormed MSE : 67.84940, RMSE : 8.23625, MAE : 5.53757, MAPE: 0.14495, reconstruction Loss : 137.90640.
+This epoch cost 0.458s.
+----------------------
+Epochs 6/25
+in meta-training   Unnormed MSE : 62.50608, RMSE : 7.90438, MAE : 5.13001, MAPE: 0.13697, reconstruction Loss : 127.29513.
+This epoch cost 0.458s.
+----------------------
+Epochs 7/25
+in meta-training   Unnormed MSE : 57.53014, RMSE : 7.58088, MAE : 4.76007, MAPE: 0.12942, reconstruction Loss : 117.19981.
+This epoch cost 0.46s.
+----------------------
+Epochs 8/25
+in meta-training   Unnormed MSE : 53.53264, RMSE : 7.30908, MAE : 4.47582, MAPE: 0.12347, reconstruction Loss : 109.02327.
+This epoch cost 0.458s.
+----------------------
+Epochs 9/25
+in meta-training   Unnormed MSE : 50.57050, RMSE : 7.09878, MAE : 4.28480, MAPE: 0.11937, reconstruction Loss : 102.77119.
+This epoch cost 0.456s.
+----------------------
+Epochs 10/25
+in meta-training   Unnormed MSE : 48.34056, RMSE : 6.93584, MAE : 4.17402, MAPE: 0.11685, reconstruction Loss : 98.13106.
+This epoch cost 0.456s.
+----------------------
+Epochs 11/25
+in meta-training   Unnormed MSE : 46.65785, RMSE : 6.81077, MAE : 4.10362, MAPE: 0.11515, reconstruction Loss : 94.34334.
+This epoch cost 0.457s.
+----------------------
+Epochs 12/25
+in meta-training   Unnormed MSE : 45.12569, RMSE : 6.69639, MAE : 4.06183, MAPE: 0.11389, reconstruction Loss : 91.17707.
+This epoch cost 0.457s.
+----------------------
+Epochs 13/25
+in meta-training   Unnormed MSE : 44.31611, RMSE : 6.63509, MAE : 4.03189, MAPE: 0.11297, reconstruction Loss : 89.26623.
+This epoch cost 0.456s.
+----------------------
+Epochs 14/25
+in meta-training   Unnormed MSE : 43.37734, RMSE : 6.56168, MAE : 4.01409, MAPE: 0.11232, reconstruction Loss : 87.27777.
+This epoch cost 0.456s.
+----------------------
+Epochs 15/25
+in meta-training   Unnormed MSE : 42.39989, RMSE : 6.48828, MAE : 3.99249, MAPE: 0.11154, reconstruction Loss : 85.39558.
+This epoch cost 0.453s.
+----------------------
+Epochs 16/25
+in meta-training   Unnormed MSE : 41.96085, RMSE : 6.45269, MAE : 3.98889, MAPE: 0.11132, reconstruction Loss : 84.21877.
+This epoch cost 0.454s.
+----------------------
+Epochs 17/25
+in meta-training   Unnormed MSE : 41.16064, RMSE : 6.39040, MAE : 3.94549, MAPE: 0.11019, reconstruction Loss : 82.67690.
+This epoch cost 0.456s.
+----------------------
+Epochs 18/25
+in meta-training   Unnormed MSE : 40.38323, RMSE : 6.32950, MAE : 3.92322, MAPE: 0.10939, reconstruction Loss : 81.13287.
+This epoch cost 0.454s.
+----------------------
+Epochs 19/25
+in meta-training   Unnormed MSE : 39.70309, RMSE : 6.27565, MAE : 3.89516, MAPE: 0.10843, reconstruction Loss : 79.76173.
+This epoch cost 0.454s.
+----------------------
+Epochs 20/25
+in meta-training   Unnormed MSE : 39.48093, RMSE : 6.25664, MAE : 3.86411, MAPE: 0.10773, reconstruction Loss : 79.43149.
+This epoch cost 0.455s.
+----------------------
+Epochs 21/25
+in meta-training   Unnormed MSE : 39.20010, RMSE : 6.22708, MAE : 3.84569, MAPE: 0.10687, reconstruction Loss : 79.01918.
+This epoch cost 0.453s.
+----------------------
+Epochs 22/25
+in meta-training   Unnormed MSE : 41.28316, RMSE : 6.36443, MAE : 4.05832, MAPE: 0.10971, reconstruction Loss : 83.05057.
+This epoch cost 0.455s.
+----------------------
+Epochs 23/25
+in meta-training   Unnormed MSE : 41.41220, RMSE : 6.37039, MAE : 4.07954, MAPE: 0.10905, reconstruction Loss : 82.94032.
+This epoch cost 0.453s.
+----------------------
+Epochs 24/25
+in meta-training   Unnormed MSE : 37.38925, RMSE : 6.09270, MAE : 3.80841, MAPE: 0.10280, reconstruction Loss : 74.87865.
+This epoch cost 0.453s.
+Finetuned model saved in save/meta_model/chengdu_shenzhen_metr/20260507-222003
+[INFO] Enter finetune phase
+----------------------
+Epochs 0/400
+in training   Unnormed MSE : 68.94207, RMSE : 8.22466, MAE : 4.73037, MAPE: 0.12049, normed MSE : 68.94206.
+Best model. Saved.
+this epoch costs 0.16038s
+----------------------
+Epochs 1/400
+in training   Unnormed MSE : 39.43811, RMSE : 6.27684, MAE : 3.72124, MAPE: 0.08971, normed MSE : 39.43812.
+Best model. Saved.
+this epoch costs 0.15701s
+----------------------
+Epochs 2/400
+in training   Unnormed MSE : 30.79670, RMSE : 5.52426, MAE : 3.14334, MAPE: 0.05844, normed MSE : 30.79670.
+Best model. Saved.
+this epoch costs 0.14501s
+----------------------
+Epochs 3/400
+in training   Unnormed MSE : 27.47227, RMSE : 5.22787, MAE : 2.84316, MAPE: 0.06903, normed MSE : 27.47226.
+Best model. Saved.
+this epoch costs 0.14133s
+----------------------
+Epochs 4/400
+in training   Unnormed MSE : 25.18644, RMSE : 5.01759, MAE : 2.93844, MAPE: 0.06674, normed MSE : 25.18644.
+this epoch costs 0.13383s
+----------------------
+Epochs 5/400
+in training   Unnormed MSE : 30.07066, RMSE : 5.47552, MAE : 3.03904, MAPE: 0.06518, normed MSE : 30.07066.
+this epoch costs 0.13251s
+----------------------
+Epochs 6/400
+in training   Unnormed MSE : 20.47774, RMSE : 4.48708, MAE : 2.38664, MAPE: 0.04950, normed MSE : 20.47774.
+Best model. Saved.
+this epoch costs 0.14141s
+----------------------
+Epochs 7/400
+in training   Unnormed MSE : 17.49974, RMSE : 4.15915, MAE : 2.31081, MAPE: 0.04478, normed MSE : 17.49974.
+Best model. Saved.
+this epoch costs 0.14117s
+----------------------
+Epochs 8/400
+in training   Unnormed MSE : 29.34697, RMSE : 5.37694, MAE : 2.71513, MAPE: 0.06824, normed MSE : 29.34697.
+this epoch costs 0.13181s
+----------------------
+Epochs 9/400
+in training   Unnormed MSE : 22.51984, RMSE : 4.61315, MAE : 2.72531, MAPE: 0.06040, normed MSE : 22.51984.
+this epoch costs 0.1322s
+----------------------
+Epochs 10/400
+in training   Unnormed MSE : 29.59832, RMSE : 5.43770, MAE : 3.05559, MAPE: 0.06921, normed MSE : 29.59832.
+this epoch costs 0.13176s
+----------------------
+Epochs 11/400
+in training   Unnormed MSE : 24.86299, RMSE : 4.97749, MAE : 2.64243, MAPE: 0.05307, normed MSE : 24.86299.
+this epoch costs 0.13267s
+----------------------
+Epochs 12/400
+in training   Unnormed MSE : 27.22713, RMSE : 5.14722, MAE : 2.87968, MAPE: 0.06906, normed MSE : 27.22713.
+this epoch costs 0.13219s
+----------------------
+Epochs 13/400
+in training   Unnormed MSE : 15.74179, RMSE : 3.95860, MAE : 2.08883, MAPE: 0.03840, normed MSE : 15.74179.
+Best model. Saved.
+this epoch costs 0.14136s
+----------------------
+Epochs 14/400
+in training   Unnormed MSE : 28.76475, RMSE : 5.34538, MAE : 3.02341, MAPE: 0.07262, normed MSE : 28.76475.
+this epoch costs 0.13622s
+----------------------
+Epochs 15/400
+in training   Unnormed MSE : 25.40384, RMSE : 5.03478, MAE : 2.80308, MAPE: 0.06220, normed MSE : 25.40384.
+this epoch costs 0.13165s
+----------------------
+Epochs 16/400
+in training   Unnormed MSE : 18.68987, RMSE : 4.32198, MAE : 2.35215, MAPE: 0.04509, normed MSE : 18.68987.
+this epoch costs 0.13249s
+----------------------
+Epochs 17/400
+in training   Unnormed MSE : 30.07764, RMSE : 5.43349, MAE : 2.87724, MAPE: 0.07609, normed MSE : 30.07764.
+this epoch costs 0.13189s
+----------------------
+Epochs 18/400
+in training   Unnormed MSE : 23.19062, RMSE : 4.78741, MAE : 2.53196, MAPE: 0.05896, normed MSE : 23.19062.
+this epoch costs 0.13237s
+----------------------
+Epochs 19/400
+in training   Unnormed MSE : 23.27142, RMSE : 4.82289, MAE : 2.52032, MAPE: 0.04882, normed MSE : 23.27142.
+this epoch costs 0.13201s
+----------------------
+Epochs 20/400
+in training   Unnormed MSE : 21.23263, RMSE : 4.59081, MAE : 2.37863, MAPE: 0.05493, normed MSE : 21.23263.
+this epoch costs 0.13234s
+----------------------
+Epochs 21/400
+in training   Unnormed MSE : 22.08079, RMSE : 4.68463, MAE : 2.48795, MAPE: 0.05793, normed MSE : 22.08079.
+this epoch costs 0.13217s
+----------------------
+Epochs 22/400
+in training   Unnormed MSE : 21.51344, RMSE : 4.63317, MAE : 2.42437, MAPE: 0.05478, normed MSE : 21.51344.
+this epoch costs 0.13209s
+----------------------
+Epochs 23/400
+in training   Unnormed MSE : 23.70398, RMSE : 4.86193, MAE : 2.57353, MAPE: 0.06013, normed MSE : 23.70398.
+this epoch costs 0.13194s
+----------------------
+Epochs 24/400
+in training   Unnormed MSE : 19.89912, RMSE : 4.45469, MAE : 2.35473, MAPE: 0.05198, normed MSE : 19.89912.
+this epoch costs 0.132s
+----------------------
+Epochs 25/400
+in training   Unnormed MSE : 18.86720, RMSE : 4.33277, MAE : 2.29178, MAPE: 0.05070, normed MSE : 18.86721.
+this epoch costs 0.13218s
+----------------------
+Epochs 26/400
+in training   Unnormed MSE : 15.53109, RMSE : 3.90724, MAE : 2.05052, MAPE: 0.04339, normed MSE : 15.53109.
+Best model. Saved.
+this epoch costs 0.14149s
+----------------------
+Epochs 27/400
+in training   Unnormed MSE : 17.54892, RMSE : 4.13156, MAE : 2.19692, MAPE: 0.04730, normed MSE : 17.54892.
+this epoch costs 0.13234s
+----------------------
+Epochs 28/400
+in training   Unnormed MSE : 18.14310, RMSE : 4.25724, MAE : 2.25920, MAPE: 0.04833, normed MSE : 18.14309.
+this epoch costs 0.13229s
+----------------------
+Epochs 29/400
+in training   Unnormed MSE : 18.24049, RMSE : 4.25850, MAE : 2.29687, MAPE: 0.04885, normed MSE : 18.24049.
+this epoch costs 0.13212s
+----------------------
+Epochs 30/400
+in training   Unnormed MSE : 15.10073, RMSE : 3.88406, MAE : 2.04306, MAPE: 0.04408, normed MSE : 15.10073.
+Best model. Saved.
+this epoch costs 0.14089s
+----------------------
+Epochs 31/400
+in training   Unnormed MSE : 17.04095, RMSE : 4.12749, MAE : 2.12034, MAPE: 0.04817, normed MSE : 17.04095.
+this epoch costs 0.13165s
+----------------------
+Epochs 32/400
+in training   Unnormed MSE : 17.31568, RMSE : 4.15657, MAE : 2.23270, MAPE: 0.04793, normed MSE : 17.31568.
+this epoch costs 0.13246s
+----------------------
+Epochs 33/400
+in training   Unnormed MSE : 18.54750, RMSE : 4.29399, MAE : 2.23283, MAPE: 0.05016, normed MSE : 18.54750.
+this epoch costs 0.13205s
+----------------------
+Epochs 34/400
+in training   Unnormed MSE : 17.67296, RMSE : 4.17958, MAE : 2.19044, MAPE: 0.05012, normed MSE : 17.67296.
+this epoch costs 0.13185s
+----------------------
+Epochs 35/400
+in training   Unnormed MSE : 16.93199, RMSE : 4.11235, MAE : 2.08864, MAPE: 0.04466, normed MSE : 16.93199.
+this epoch costs 0.13231s
+----------------------
+Epochs 36/400
+in training   Unnormed MSE : 15.21602, RMSE : 3.89490, MAE : 2.05246, MAPE: 0.04458, normed MSE : 15.21602.
+this epoch costs 0.13182s
+----------------------
+Epochs 37/400
+in training   Unnormed MSE : 18.27045, RMSE : 4.27346, MAE : 2.22333, MAPE: 0.04934, normed MSE : 18.27045.
+this epoch costs 0.13153s
+----------------------
+Epochs 38/400
+in training   Unnormed MSE : 17.15694, RMSE : 4.13832, MAE : 2.22136, MAPE: 0.04702, normed MSE : 17.15694.
+this epoch costs 0.13176s
+----------------------
+Epochs 39/400
+in training   Unnormed MSE : 14.61458, RMSE : 3.81703, MAE : 1.97822, MAPE: 0.04121, normed MSE : 14.61458.
+Best model. Saved.
+this epoch costs 0.14118s
+----------------------
+Epochs 40/400
+in training   Unnormed MSE : 14.95482, RMSE : 3.85659, MAE : 2.02129, MAPE: 0.04543, normed MSE : 14.95482.
+this epoch costs 0.13206s
+----------------------
+Epochs 41/400
+in training   Unnormed MSE : 16.48926, RMSE : 4.05887, MAE : 2.16425, MAPE: 0.04339, normed MSE : 16.48926.
+this epoch costs 0.13198s
+----------------------
+Epochs 42/400
+in training   Unnormed MSE : 13.05862, RMSE : 3.61042, MAE : 1.89937, MAPE: 0.03920, normed MSE : 13.05862.
+Best model. Saved.
+this epoch costs 0.14121s
+----------------------
+Epochs 43/400
+in training   Unnormed MSE : 15.91595, RMSE : 3.96543, MAE : 2.02122, MAPE: 0.04526, normed MSE : 15.91595.
+this epoch costs 0.13257s
+----------------------
+Epochs 44/400
+in training   Unnormed MSE : 14.18204, RMSE : 3.76311, MAE : 1.91931, MAPE: 0.03913, normed MSE : 14.18204.
+this epoch costs 0.13226s
+----------------------
+Epochs 45/400
+in training   Unnormed MSE : 16.15243, RMSE : 3.96751, MAE : 2.07289, MAPE: 0.04718, normed MSE : 16.15243.
+this epoch costs 0.13223s
+----------------------
+Epochs 46/400
+in training   Unnormed MSE : 15.21677, RMSE : 3.88903, MAE : 2.04422, MAPE: 0.04566, normed MSE : 15.21676.
+this epoch costs 0.13227s
+----------------------
+Epochs 47/400
+in training   Unnormed MSE : 13.33275, RMSE : 3.64823, MAE : 1.91453, MAPE: 0.03943, normed MSE : 13.33275.
+this epoch costs 0.13193s
+----------------------
+Epochs 48/400
+in training   Unnormed MSE : 19.90833, RMSE : 4.41251, MAE : 2.33737, MAPE: 0.05572, normed MSE : 19.90833.
+this epoch costs 0.13258s
+----------------------
+Epochs 49/400
+in training   Unnormed MSE : 14.06428, RMSE : 3.74755, MAE : 2.01947, MAPE: 0.04064, normed MSE : 14.06428.
+this epoch costs 0.13196s
+----------------------
+Epochs 50/400
+in training   Unnormed MSE : 15.01062, RMSE : 3.86591, MAE : 2.01722, MAPE: 0.04379, normed MSE : 15.01062.
+this epoch costs 0.13296s
+----------------------
+Epochs 51/400
+in training   Unnormed MSE : 15.56230, RMSE : 3.85048, MAE : 2.14886, MAPE: 0.04700, normed MSE : 15.56230.
+this epoch costs 0.13258s
+----------------------
+Epochs 52/400
+in training   Unnormed MSE : 14.62234, RMSE : 3.80589, MAE : 1.91438, MAPE: 0.03975, normed MSE : 14.62234.
+this epoch costs 0.13215s
+----------------------
+Epochs 53/400
+in training   Unnormed MSE : 13.94477, RMSE : 3.72191, MAE : 1.95644, MAPE: 0.04215, normed MSE : 13.94477.
+this epoch costs 0.13171s
+----------------------
+Epochs 54/400
+in training   Unnormed MSE : 13.22294, RMSE : 3.63272, MAE : 1.92935, MAPE: 0.03939, normed MSE : 13.22294.
+this epoch costs 0.13202s
+----------------------
+Epochs 55/400
+in training   Unnormed MSE : 16.39145, RMSE : 4.04737, MAE : 2.06388, MAPE: 0.04576, normed MSE : 16.39145.
+this epoch costs 0.13226s
+----------------------
+Epochs 56/400
+in training   Unnormed MSE : 13.83893, RMSE : 3.68173, MAE : 1.93964, MAPE: 0.04234, normed MSE : 13.83893.
+this epoch costs 0.13234s
+----------------------
+Epochs 57/400
+in training   Unnormed MSE : 12.93832, RMSE : 3.56208, MAE : 1.90699, MAPE: 0.03737, normed MSE : 12.93832.
+this epoch costs 0.13372s
+----------------------
+Epochs 58/400
+in training   Unnormed MSE : 16.86714, RMSE : 4.09444, MAE : 2.20036, MAPE: 0.04741, normed MSE : 16.86714.
+this epoch costs 0.13199s
+----------------------
+Epochs 59/400
+in training   Unnormed MSE : 13.48648, RMSE : 3.67004, MAE : 1.89386, MAPE: 0.04165, normed MSE : 13.48648.
+Best model. Saved.
+this epoch costs 0.18534s
+----------------------
+Epochs 60/400
+in training   Unnormed MSE : 13.89873, RMSE : 3.71859, MAE : 1.94837, MAPE: 0.03895, normed MSE : 13.89873.
+this epoch costs 0.13171s
+----------------------
+Epochs 61/400
+in training   Unnormed MSE : 13.89825, RMSE : 3.71696, MAE : 2.00332, MAPE: 0.04392, normed MSE : 13.89825.
+this epoch costs 0.13215s
+----------------------
+Epochs 62/400
+in training   Unnormed MSE : 13.20174, RMSE : 3.63257, MAE : 1.82450, MAPE: 0.03802, normed MSE : 13.20174.
+Best model. Saved.
+this epoch costs 0.14079s
+----------------------
+Epochs 63/400
+in training   Unnormed MSE : 14.55038, RMSE : 3.80170, MAE : 2.04205, MAPE: 0.04260, normed MSE : 14.55038.
+this epoch costs 0.13192s
+----------------------
+Epochs 64/400
+in training   Unnormed MSE : 15.28152, RMSE : 3.87634, MAE : 2.05865, MAPE: 0.04641, normed MSE : 15.28152.
+this epoch costs 0.13189s
+----------------------
+Epochs 65/400
+in training   Unnormed MSE : 15.48829, RMSE : 3.92568, MAE : 2.03157, MAPE: 0.04447, normed MSE : 15.48829.
+this epoch costs 0.13233s
+----------------------
+Epochs 66/400
+in training   Unnormed MSE : 14.59920, RMSE : 3.82052, MAE : 2.04387, MAPE: 0.04400, normed MSE : 14.59920.
+this epoch costs 0.13191s
+----------------------
+Epochs 67/400
+in training   Unnormed MSE : 14.20474, RMSE : 3.75816, MAE : 1.92434, MAPE: 0.04373, normed MSE : 14.20474.
+this epoch costs 0.13196s
+----------------------
+Epochs 68/400
+in training   Unnormed MSE : 11.98667, RMSE : 3.45688, MAE : 1.71352, MAPE: 0.03379, normed MSE : 11.98667.
+Best model. Saved.
+this epoch costs 0.1409s
+----------------------
+Epochs 69/400
+in training   Unnormed MSE : 15.26549, RMSE : 3.88751, MAE : 2.06972, MAPE: 0.04473, normed MSE : 15.26549.
+this epoch costs 0.13223s
+----------------------
+Epochs 70/400
+in training   Unnormed MSE : 11.73951, RMSE : 3.41809, MAE : 1.77203, MAPE: 0.03760, normed MSE : 11.73951.
+this epoch costs 0.13197s
+----------------------
+Epochs 71/400
+in training   Unnormed MSE : 13.00904, RMSE : 3.59368, MAE : 1.86101, MAPE: 0.03921, normed MSE : 13.00904.
+this epoch costs 0.13234s
+----------------------
+Epochs 72/400
+in training   Unnormed MSE : 13.49792, RMSE : 3.65956, MAE : 1.90255, MAPE: 0.04087, normed MSE : 13.49793.
+this epoch costs 0.13216s
+----------------------
+Epochs 73/400
+in training   Unnormed MSE : 11.95387, RMSE : 3.44773, MAE : 1.73554, MAPE: 0.03756, normed MSE : 11.95387.
+this epoch costs 0.13269s
+----------------------
+Epochs 74/400
+in training   Unnormed MSE : 14.94215, RMSE : 3.86477, MAE : 2.02478, MAPE: 0.04488, normed MSE : 14.94215.
+this epoch costs 0.13207s
+----------------------
+Epochs 75/400
+in training   Unnormed MSE : 15.36577, RMSE : 3.91698, MAE : 2.04361, MAPE: 0.04725, normed MSE : 15.36577.
+this epoch costs 0.13197s
+----------------------
+Epochs 76/400
+in training   Unnormed MSE : 12.25481, RMSE : 3.49286, MAE : 1.79828, MAPE: 0.03593, normed MSE : 12.25481.
+this epoch costs 0.1323s
+----------------------
+Epochs 77/400
+in training   Unnormed MSE : 13.37652, RMSE : 3.62414, MAE : 1.93176, MAPE: 0.04097, normed MSE : 13.37652.
+this epoch costs 0.13309s
+----------------------
+Epochs 78/400
+in training   Unnormed MSE : 12.78549, RMSE : 3.57138, MAE : 1.86134, MAPE: 0.04062, normed MSE : 12.78549.
+this epoch costs 0.13236s
+----------------------
+Epochs 79/400
+in training   Unnormed MSE : 13.17701, RMSE : 3.62521, MAE : 1.88993, MAPE: 0.04030, normed MSE : 13.17701.
+this epoch costs 0.13231s
+----------------------
+Epochs 80/400
+in training   Unnormed MSE : 13.08663, RMSE : 3.61698, MAE : 1.89010, MAPE: 0.03927, normed MSE : 13.08663.
+this epoch costs 0.1322s
+----------------------
+Epochs 81/400
+in training   Unnormed MSE : 14.53719, RMSE : 3.81179, MAE : 2.01594, MAPE: 0.04399, normed MSE : 14.53719.
+this epoch costs 0.13243s
+----------------------
+Epochs 82/400
+in training   Unnormed MSE : 14.31535, RMSE : 3.76716, MAE : 2.01027, MAPE: 0.04228, normed MSE : 14.31535.
+this epoch costs 0.13189s
+----------------------
+Epochs 83/400
+in training   Unnormed MSE : 13.52723, RMSE : 3.67344, MAE : 1.87797, MAPE: 0.04101, normed MSE : 13.52723.
+this epoch costs 0.13237s
+----------------------
+Epochs 84/400
+in training   Unnormed MSE : 11.68111, RMSE : 3.41270, MAE : 1.69138, MAPE: 0.03356, normed MSE : 11.68111.
+Best model. Saved.
+this epoch costs 0.1415s
+----------------------
+Epochs 85/400
+in training   Unnormed MSE : 13.64776, RMSE : 3.68421, MAE : 1.92583, MAPE: 0.04247, normed MSE : 13.64776.
+this epoch costs 0.13269s
+----------------------
+Epochs 86/400
+in training   Unnormed MSE : 15.54601, RMSE : 3.93903, MAE : 2.06588, MAPE: 0.04709, normed MSE : 15.54601.
+this epoch costs 0.13275s
+----------------------
+Epochs 87/400
+in training   Unnormed MSE : 14.49864, RMSE : 3.79790, MAE : 1.96567, MAPE: 0.04356, normed MSE : 14.49864.
+this epoch costs 0.13223s
+----------------------
+Epochs 88/400
+in training   Unnormed MSE : 14.88423, RMSE : 3.85754, MAE : 1.99506, MAPE: 0.04452, normed MSE : 14.88423.
+this epoch costs 0.13224s
+----------------------
+Epochs 89/400
+in training   Unnormed MSE : 14.73678, RMSE : 3.83721, MAE : 1.94313, MAPE: 0.04058, normed MSE : 14.73678.
+this epoch costs 0.13223s
+----------------------
+Epochs 90/400
+in training   Unnormed MSE : 13.42743, RMSE : 3.61827, MAE : 1.95830, MAPE: 0.04169, normed MSE : 13.42743.
+this epoch costs 0.13226s
+----------------------
+Epochs 91/400
+in training   Unnormed MSE : 15.58175, RMSE : 3.94705, MAE : 2.05867, MAPE: 0.04330, normed MSE : 15.58175.
+this epoch costs 0.13204s
+----------------------
+Epochs 92/400
+in training   Unnormed MSE : 13.48506, RMSE : 3.65456, MAE : 1.92018, MAPE: 0.04245, normed MSE : 13.48506.
+this epoch costs 0.13187s
+----------------------
+Epochs 93/400
+in training   Unnormed MSE : 14.82896, RMSE : 3.84498, MAE : 2.05599, MAPE: 0.04549, normed MSE : 14.82896.
+this epoch costs 0.13193s
+----------------------
+Epochs 94/400
+in training   Unnormed MSE : 13.97767, RMSE : 3.72630, MAE : 1.92631, MAPE: 0.04129, normed MSE : 13.97767.
+this epoch costs 0.13229s
+----------------------
+Epochs 95/400
+in training   Unnormed MSE : 16.76071, RMSE : 4.07717, MAE : 2.06928, MAPE: 0.04771, normed MSE : 16.76071.
+this epoch costs 0.13263s
+----------------------
+Epochs 96/400
+in training   Unnormed MSE : 12.49728, RMSE : 3.53139, MAE : 1.85248, MAPE: 0.03665, normed MSE : 12.49728.
+this epoch costs 0.13253s
+----------------------
+Epochs 97/400
+in training   Unnormed MSE : 13.72605, RMSE : 3.70274, MAE : 1.94247, MAPE: 0.04248, normed MSE : 13.72605.
+this epoch costs 0.13231s
+----------------------
+Epochs 98/400
+in training   Unnormed MSE : 13.10571, RMSE : 3.61396, MAE : 1.87815, MAPE: 0.04147, normed MSE : 13.10571.
+this epoch costs 0.13221s
+----------------------
+Epochs 99/400
+in training   Unnormed MSE : 14.63470, RMSE : 3.81480, MAE : 2.02387, MAPE: 0.04473, normed MSE : 14.63470.
+this epoch costs 0.1322s
+----------------------
+Epochs 100/400
+in training   Unnormed MSE : 13.01149, RMSE : 3.60637, MAE : 1.85167, MAPE: 0.03955, normed MSE : 13.01149.
+this epoch costs 0.13214s
+----------------------
+Epochs 101/400
+in training   Unnormed MSE : 15.22464, RMSE : 3.87453, MAE : 2.05938, MAPE: 0.04809, normed MSE : 15.22464.
+this epoch costs 0.13234s
+----------------------
+Epochs 102/400
+in training   Unnormed MSE : 11.43584, RMSE : 3.37538, MAE : 1.72334, MAPE: 0.03516, normed MSE : 11.43584.
+this epoch costs 0.13224s
+----------------------
+Epochs 103/400
+in training   Unnormed MSE : 13.49507, RMSE : 3.65921, MAE : 1.88989, MAPE: 0.04351, normed MSE : 13.49507.
+this epoch costs 0.133s
+----------------------
+Epochs 104/400
+in training   Unnormed MSE : 11.38838, RMSE : 3.35658, MAE : 1.76397, MAPE: 0.03481, normed MSE : 11.38838.
+this epoch costs 0.13278s
+----------------------
+Epochs 105/400
+in training   Unnormed MSE : 9.06076, RMSE : 3.00651, MAE : 1.50226, MAPE: 0.02929, normed MSE : 9.06076.
+Best model. Saved.
+this epoch costs 0.14742s
+----------------------
+Epochs 106/400
+in training   Unnormed MSE : 13.49150, RMSE : 3.67244, MAE : 1.88914, MAPE: 0.04115, normed MSE : 13.49150.
+this epoch costs 0.13233s
+----------------------
+Epochs 107/400
+in training   Unnormed MSE : 11.12174, RMSE : 3.31262, MAE : 1.72399, MAPE: 0.03516, normed MSE : 11.12174.
+this epoch costs 0.13202s
+----------------------
+Epochs 108/400
+in training   Unnormed MSE : 14.99504, RMSE : 3.84459, MAE : 2.01772, MAPE: 0.04592, normed MSE : 14.99504.
+this epoch costs 0.13342s
+----------------------
+Epochs 109/400
+in training   Unnormed MSE : 16.57043, RMSE : 4.06149, MAE : 2.26190, MAPE: 0.05006, normed MSE : 16.57043.
+this epoch costs 0.13199s
+----------------------
+Epochs 110/400
+in training   Unnormed MSE : 13.80326, RMSE : 3.71460, MAE : 1.96594, MAPE: 0.04143, normed MSE : 13.80326.
+this epoch costs 0.13235s
+----------------------
+Epochs 111/400
+in training   Unnormed MSE : 12.05195, RMSE : 3.46815, MAE : 1.79140, MAPE: 0.03984, normed MSE : 12.05195.
+this epoch costs 0.13227s
+----------------------
+Epochs 112/400
+in training   Unnormed MSE : 14.19091, RMSE : 3.76495, MAE : 2.07966, MAPE: 0.04367, normed MSE : 14.19091.
+this epoch costs 0.14339s
+----------------------
+Epochs 113/400
+in training   Unnormed MSE : 12.79079, RMSE : 3.57160, MAE : 1.87267, MAPE: 0.03908, normed MSE : 12.79079.
+this epoch costs 0.13294s
+----------------------
+Epochs 114/400
+in training   Unnormed MSE : 13.24957, RMSE : 3.63420, MAE : 1.91772, MAPE: 0.04030, normed MSE : 13.24957.
+this epoch costs 0.13272s
+----------------------
+Epochs 115/400
+in training   Unnormed MSE : 10.43220, RMSE : 3.20500, MAE : 1.78192, MAPE: 0.03429, normed MSE : 10.43220.
+this epoch costs 0.13232s
+----------------------
+Epochs 116/400
+in training   Unnormed MSE : 10.04641, RMSE : 3.15935, MAE : 1.67475, MAPE: 0.03385, normed MSE : 10.04641.
+this epoch costs 0.13247s
+----------------------
+Epochs 117/400
+in training   Unnormed MSE : 15.27608, RMSE : 3.90264, MAE : 2.12950, MAPE: 0.04689, normed MSE : 15.27608.
+this epoch costs 0.13324s
+----------------------
+Epochs 118/400
+in training   Unnormed MSE : 11.54197, RMSE : 3.37867, MAE : 1.97190, MAPE: 0.03824, normed MSE : 11.54197.
+this epoch costs 0.13215s
+----------------------
+Epochs 119/400
+in training   Unnormed MSE : 10.21189, RMSE : 3.18821, MAE : 1.72793, MAPE: 0.03528, normed MSE : 10.21189.
+this epoch costs 0.13215s
+----------------------
+Epochs 120/400
+in training   Unnormed MSE : 12.78784, RMSE : 3.57253, MAE : 1.87402, MAPE: 0.03787, normed MSE : 12.78784.
+this epoch costs 0.13245s
+----------------------
+Epochs 121/400
+in training   Unnormed MSE : 12.87489, RMSE : 3.58478, MAE : 2.02248, MAPE: 0.04188, normed MSE : 12.87489.
+this epoch costs 0.13204s
+----------------------
+Epochs 122/400
+in training   Unnormed MSE : 11.09571, RMSE : 3.31836, MAE : 1.73792, MAPE: 0.03441, normed MSE : 11.09571.
+this epoch costs 0.13249s
+----------------------
+Epochs 123/400
+in training   Unnormed MSE : 10.68422, RMSE : 3.21935, MAE : 1.72728, MAPE: 0.03716, normed MSE : 10.68422.
+this epoch costs 0.13303s
+----------------------
+Epochs 124/400
+in training   Unnormed MSE : 13.68476, RMSE : 3.69900, MAE : 2.00314, MAPE: 0.04068, normed MSE : 13.68476.
+this epoch costs 0.132s
+----------------------
+Epochs 125/400
+in training   Unnormed MSE : 13.63898, RMSE : 3.68511, MAE : 2.05743, MAPE: 0.04509, normed MSE : 13.63898.
+this epoch costs 0.13266s
+----------------------
+Epochs 126/400
+in training   Unnormed MSE : 11.62209, RMSE : 3.38256, MAE : 1.77101, MAPE: 0.03540, normed MSE : 11.62209.
+this epoch costs 0.1323s
+----------------------
+Epochs 127/400
+in training   Unnormed MSE : 14.93776, RMSE : 3.82216, MAE : 1.97261, MAPE: 0.04561, normed MSE : 14.93776.
+this epoch costs 0.1324s
+----------------------
+Epochs 128/400
+in training   Unnormed MSE : 18.20415, RMSE : 4.25270, MAE : 2.47480, MAPE: 0.05421, normed MSE : 18.20415.
+this epoch costs 0.13203s
+----------------------
+Epochs 129/400
+in training   Unnormed MSE : 15.44764, RMSE : 3.92645, MAE : 2.07742, MAPE: 0.04917, normed MSE : 15.44764.
+this epoch costs 0.13232s
+----------------------
+Epochs 130/400
+in training   Unnormed MSE : 14.92909, RMSE : 3.84329, MAE : 2.06977, MAPE: 0.04553, normed MSE : 14.92909.
+this epoch costs 0.13202s
+----------------------
+Epochs 131/400
+in training   Unnormed MSE : 9.60854, RMSE : 3.08633, MAE : 1.65895, MAPE: 0.03159, normed MSE : 9.60854.
+this epoch costs 0.13232s
+----------------------
+Epochs 132/400
+in training   Unnormed MSE : 13.01421, RMSE : 3.60570, MAE : 1.79353, MAPE: 0.03900, normed MSE : 13.01421.
+this epoch costs 0.1324s
+----------------------
+Epochs 133/400
+in training   Unnormed MSE : 12.99210, RMSE : 3.59083, MAE : 1.88403, MAPE: 0.04038, normed MSE : 12.99210.
+this epoch costs 0.13245s
+----------------------
+Epochs 134/400
+in training   Unnormed MSE : 11.75142, RMSE : 3.42680, MAE : 1.84501, MAPE: 0.03883, normed MSE : 11.75142.
+this epoch costs 0.13224s
+----------------------
+Epochs 135/400
+in training   Unnormed MSE : 13.11361, RMSE : 3.60938, MAE : 1.81507, MAPE: 0.04061, normed MSE : 13.11361.
+this epoch costs 0.13169s
+----------------------
+Epochs 136/400
+in training   Unnormed MSE : 11.55877, RMSE : 3.36062, MAE : 1.69831, MAPE: 0.03488, normed MSE : 11.55877.
+this epoch costs 0.13211s
+----------------------
+Epochs 137/400
+in training   Unnormed MSE : 12.33880, RMSE : 3.47483, MAE : 1.84308, MAPE: 0.04093, normed MSE : 12.33880.
+this epoch costs 0.13221s
+----------------------
+Epochs 138/400
+in training   Unnormed MSE : 12.52082, RMSE : 3.51337, MAE : 1.82280, MAPE: 0.03851, normed MSE : 12.52082.
+this epoch costs 0.13232s
+----------------------
+Epochs 139/400
+in training   Unnormed MSE : 12.28754, RMSE : 3.50407, MAE : 1.84162, MAPE: 0.03637, normed MSE : 12.28754.
+this epoch costs 0.13205s
+----------------------
+Epochs 140/400
+in training   Unnormed MSE : 12.00994, RMSE : 3.42384, MAE : 1.79966, MAPE: 0.03835, normed MSE : 12.00994.
+this epoch costs 0.13213s
+----------------------
+Epochs 141/400
+in training   Unnormed MSE : 11.54839, RMSE : 3.36662, MAE : 1.81801, MAPE: 0.03839, normed MSE : 11.54839.
+this epoch costs 0.13221s
+----------------------
+Epochs 142/400
+in training   Unnormed MSE : 9.44926, RMSE : 3.07204, MAE : 1.55218, MAPE: 0.03042, normed MSE : 9.44926.
+this epoch costs 0.13306s
+----------------------
+Epochs 143/400
+in training   Unnormed MSE : 13.55137, RMSE : 3.66502, MAE : 1.98888, MAPE: 0.04276, normed MSE : 13.55137.
+this epoch costs 0.13253s
+----------------------
+Epochs 144/400
+in training   Unnormed MSE : 13.11670, RMSE : 3.59861, MAE : 1.86152, MAPE: 0.03863, normed MSE : 13.11670.
+this epoch costs 0.1324s
+----------------------
+Epochs 145/400
+in training   Unnormed MSE : 12.03291, RMSE : 3.41356, MAE : 1.76198, MAPE: 0.03877, normed MSE : 12.03291.
+this epoch costs 0.13309s
+----------------------
+Epochs 146/400
+in training   Unnormed MSE : 10.95516, RMSE : 3.30207, MAE : 1.74548, MAPE: 0.03583, normed MSE : 10.95516.
+this epoch costs 0.13235s
+----------------------
+Epochs 147/400
+in training   Unnormed MSE : 10.74575, RMSE : 3.27647, MAE : 1.71876, MAPE: 0.03558, normed MSE : 10.74575.
+this epoch costs 0.13304s
+----------------------
+Epochs 148/400
+in training   Unnormed MSE : 11.11362, RMSE : 3.31015, MAE : 1.67459, MAPE: 0.03584, normed MSE : 11.11362.
+this epoch costs 0.1325s
+----------------------
+Epochs 149/400
+in training   Unnormed MSE : 11.31134, RMSE : 3.35065, MAE : 1.82445, MAPE: 0.03694, normed MSE : 11.31134.
+this epoch costs 0.13268s
+----------------------
+Epochs 150/400
+in training   Unnormed MSE : 13.71282, RMSE : 3.69118, MAE : 1.98033, MAPE: 0.04493, normed MSE : 13.71282.
+this epoch costs 0.13266s
+----------------------
+Epochs 151/400
+in training   Unnormed MSE : 11.52937, RMSE : 3.37168, MAE : 1.78080, MAPE: 0.03783, normed MSE : 11.52937.
+this epoch costs 0.13218s
+----------------------
+Epochs 152/400
+in training   Unnormed MSE : 11.40774, RMSE : 3.36939, MAE : 1.75025, MAPE: 0.03634, normed MSE : 11.40774.
+this epoch costs 0.13363s
+----------------------
+Epochs 153/400
+in training   Unnormed MSE : 14.00880, RMSE : 3.71991, MAE : 1.87844, MAPE: 0.04328, normed MSE : 14.00880.
+this epoch costs 0.13255s
+----------------------
+Epochs 154/400
+in training   Unnormed MSE : 14.29507, RMSE : 3.77760, MAE : 1.97847, MAPE: 0.04243, normed MSE : 14.29507.
+this epoch costs 0.13246s
+----------------------
+Epochs 155/400
+in training   Unnormed MSE : 13.05004, RMSE : 3.61097, MAE : 1.84069, MAPE: 0.04001, normed MSE : 13.05004.
+this epoch costs 0.13237s
+----------------------
+Epochs 156/400
+in training   Unnormed MSE : 10.36639, RMSE : 3.21185, MAE : 1.64592, MAPE: 0.03304, normed MSE : 10.36640.
+this epoch costs 0.13192s
+----------------------
+Epochs 157/400
+in training   Unnormed MSE : 13.22433, RMSE : 3.63595, MAE : 1.91726, MAPE: 0.04204, normed MSE : 13.22433.
+this epoch costs 0.13265s
+----------------------
+Epochs 158/400
+in training   Unnormed MSE : 10.47918, RMSE : 3.22599, MAE : 1.74673, MAPE: 0.03598, normed MSE : 10.47918.
+this epoch costs 0.13179s
+----------------------
+Epochs 159/400
+in training   Unnormed MSE : 10.17241, RMSE : 3.18135, MAE : 1.62197, MAPE: 0.03368, normed MSE : 10.17241.
+this epoch costs 0.13186s
+----------------------
+Epochs 160/400
+in training   Unnormed MSE : 13.90982, RMSE : 3.70223, MAE : 1.90757, MAPE: 0.04184, normed MSE : 13.90982.
+this epoch costs 0.13245s
+----------------------
+Epochs 161/400
+in training   Unnormed MSE : 11.28118, RMSE : 3.35054, MAE : 1.79571, MAPE: 0.03816, normed MSE : 11.28118.
+this epoch costs 0.13215s
+----------------------
+Epochs 162/400
+in training   Unnormed MSE : 13.86646, RMSE : 3.71215, MAE : 1.92693, MAPE: 0.04353, normed MSE : 13.86646.
+this epoch costs 0.13238s
+----------------------
+Epochs 163/400
+in training   Unnormed MSE : 12.04807, RMSE : 3.47049, MAE : 1.81553, MAPE: 0.03890, normed MSE : 12.04807.
+this epoch costs 0.13206s
+----------------------
+Epochs 164/400
+in training   Unnormed MSE : 10.79305, RMSE : 3.27198, MAE : 1.76181, MAPE: 0.03402, normed MSE : 10.79305.
+this epoch costs 0.13337s
+----------------------
+Epochs 165/400
+in training   Unnormed MSE : 10.46438, RMSE : 3.19071, MAE : 1.64052, MAPE: 0.03590, normed MSE : 10.46438.
+this epoch costs 0.13268s
+----------------------
+Epochs 166/400
+in training   Unnormed MSE : 13.17602, RMSE : 3.62927, MAE : 1.87269, MAPE: 0.04081, normed MSE : 13.17602.
+this epoch costs 0.13243s
+----------------------
+Epochs 167/400
+in training   Unnormed MSE : 8.90484, RMSE : 2.97299, MAE : 1.61455, MAPE: 0.03070, normed MSE : 8.90484.
+this epoch costs 0.13225s
+----------------------
+Epochs 168/400
+in training   Unnormed MSE : 13.05604, RMSE : 3.59751, MAE : 1.90073, MAPE: 0.04360, normed MSE : 13.05604.
+this epoch costs 0.13235s
+----------------------
+Epochs 169/400
+in training   Unnormed MSE : 9.98462, RMSE : 3.14781, MAE : 1.64285, MAPE: 0.03201, normed MSE : 9.98462.
+this epoch costs 0.13237s
+----------------------
+Epochs 170/400
+in training   Unnormed MSE : 11.21930, RMSE : 3.34237, MAE : 1.73853, MAPE: 0.03714, normed MSE : 11.21930.
+this epoch costs 0.13222s
+----------------------
+Epochs 171/400
+in training   Unnormed MSE : 14.86022, RMSE : 3.78872, MAE : 1.98211, MAPE: 0.04503, normed MSE : 14.86022.
+this epoch costs 0.13302s
+----------------------
+Epochs 172/400
+in training   Unnormed MSE : 9.86835, RMSE : 3.13761, MAE : 1.70027, MAPE: 0.03236, normed MSE : 9.86835.
+this epoch costs 0.13288s
+----------------------
+Epochs 173/400
+in training   Unnormed MSE : 10.40583, RMSE : 3.22278, MAE : 1.63425, MAPE: 0.03432, normed MSE : 10.40583.
+this epoch costs 0.13271s
+----------------------
+Epochs 174/400
+in training   Unnormed MSE : 11.51947, RMSE : 3.38759, MAE : 1.71553, MAPE: 0.03602, normed MSE : 11.51947.
+this epoch costs 0.13325s
+----------------------
+Epochs 175/400
+in training   Unnormed MSE : 11.62782, RMSE : 3.39641, MAE : 1.75778, MAPE: 0.03448, normed MSE : 11.62782.
+this epoch costs 0.1328s
+----------------------
+Epochs 176/400
+in training   Unnormed MSE : 13.61711, RMSE : 3.67478, MAE : 1.91251, MAPE: 0.04256, normed MSE : 13.61711.
+this epoch costs 0.13211s
+----------------------
+Epochs 177/400
+in training   Unnormed MSE : 11.30518, RMSE : 3.34662, MAE : 1.76434, MAPE: 0.03494, normed MSE : 11.30518.
+this epoch costs 0.1332s
+----------------------
+Epochs 178/400
+in training   Unnormed MSE : 11.74599, RMSE : 3.42037, MAE : 1.76492, MAPE: 0.03699, normed MSE : 11.74599.
+this epoch costs 0.13254s
+----------------------
+Epochs 179/400
+in training   Unnormed MSE : 13.10370, RMSE : 3.60377, MAE : 1.92418, MAPE: 0.04051, normed MSE : 13.10370.
+this epoch costs 0.13259s
+----------------------
+Epochs 180/400
+in training   Unnormed MSE : 10.55786, RMSE : 3.23315, MAE : 1.65501, MAPE: 0.03469, normed MSE : 10.55786.
+this epoch costs 0.13265s
+----------------------
+Epochs 181/400
+in training   Unnormed MSE : 14.01445, RMSE : 3.73501, MAE : 1.90933, MAPE: 0.04171, normed MSE : 14.01445.
+this epoch costs 0.1324s
+----------------------
+Epochs 182/400
+in training   Unnormed MSE : 11.91851, RMSE : 3.44015, MAE : 1.88473, MAPE: 0.03913, normed MSE : 11.91851.
+this epoch costs 0.13278s
+----------------------
+Epochs 183/400
+in training   Unnormed MSE : 13.57799, RMSE : 3.66054, MAE : 1.90161, MAPE: 0.04269, normed MSE : 13.57799.
+this epoch costs 0.13261s
+----------------------
+Epochs 184/400
+in training   Unnormed MSE : 9.85771, RMSE : 3.13958, MAE : 1.59659, MAPE: 0.03183, normed MSE : 9.85771.
+this epoch costs 0.13264s
+----------------------
+Epochs 185/400
+in training   Unnormed MSE : 9.39719, RMSE : 3.06414, MAE : 1.67753, MAPE: 0.03303, normed MSE : 9.39719.
+this epoch costs 0.13336s
+----------------------
+Epochs 186/400
+in training   Unnormed MSE : 10.26649, RMSE : 3.19360, MAE : 1.70082, MAPE: 0.03430, normed MSE : 10.26649.
+this epoch costs 0.1326s
+----------------------
+Epochs 187/400
+in training   Unnormed MSE : 12.44469, RMSE : 3.51367, MAE : 1.82300, MAPE: 0.03852, normed MSE : 12.44469.
+this epoch costs 0.13227s
+----------------------
+Epochs 188/400
+in training   Unnormed MSE : 12.84561, RMSE : 3.58375, MAE : 1.98979, MAPE: 0.04166, normed MSE : 12.84561.
+this epoch costs 0.13234s
+----------------------
+Epochs 189/400
+in training   Unnormed MSE : 8.91384, RMSE : 2.97749, MAE : 1.58161, MAPE: 0.03057, normed MSE : 8.91384.
+this epoch costs 0.13326s
+----------------------
+Epochs 190/400
+in training   Unnormed MSE : 9.73973, RMSE : 3.08567, MAE : 1.63168, MAPE: 0.03300, normed MSE : 9.73973.
+this epoch costs 0.13315s
+----------------------
+Epochs 191/400
+in training   Unnormed MSE : 10.02221, RMSE : 3.15787, MAE : 1.73385, MAPE: 0.03409, normed MSE : 10.02221.
+this epoch costs 0.13235s
+----------------------
+Epochs 192/400
+in training   Unnormed MSE : 11.57051, RMSE : 3.39380, MAE : 1.76462, MAPE: 0.03855, normed MSE : 11.57051.
+this epoch costs 0.13289s
+----------------------
+Epochs 193/400
+in training   Unnormed MSE : 12.52806, RMSE : 3.53904, MAE : 1.84620, MAPE: 0.04194, normed MSE : 12.52807.
+this epoch costs 0.13209s
+----------------------
+Epochs 194/400
+in training   Unnormed MSE : 10.42644, RMSE : 3.21920, MAE : 1.62943, MAPE: 0.03349, normed MSE : 10.42644.
+this epoch costs 0.13209s
+----------------------
+Epochs 195/400
+in training   Unnormed MSE : 13.34325, RMSE : 3.64941, MAE : 1.88746, MAPE: 0.04232, normed MSE : 13.34325.
+this epoch costs 0.13265s
+----------------------
+Epochs 196/400
+in training   Unnormed MSE : 10.60963, RMSE : 3.25416, MAE : 1.70612, MAPE: 0.03443, normed MSE : 10.60963.
+this epoch costs 0.13267s
+----------------------
+Epochs 197/400
+in training   Unnormed MSE : 11.67445, RMSE : 3.40986, MAE : 1.77741, MAPE: 0.03714, normed MSE : 11.67445.
+this epoch costs 0.13244s
+----------------------
+Epochs 198/400
+in training   Unnormed MSE : 10.80704, RMSE : 3.23070, MAE : 1.77549, MAPE: 0.03619, normed MSE : 10.80704.
+this epoch costs 0.132s
+----------------------
+Epochs 199/400
+in training   Unnormed MSE : 10.88011, RMSE : 3.27763, MAE : 1.73328, MAPE: 0.03512, normed MSE : 10.88011.
+this epoch costs 0.13218s
+----------------------
+Epochs 200/400
+in training   Unnormed MSE : 10.31698, RMSE : 3.20350, MAE : 1.66784, MAPE: 0.03556, normed MSE : 10.31698.
+this epoch costs 0.13206s
+----------------------
+Epochs 201/400
+in training   Unnormed MSE : 9.61378, RMSE : 3.07821, MAE : 1.60050, MAPE: 0.03340, normed MSE : 9.61378.
+this epoch costs 0.13225s
+----------------------
+Epochs 202/400
+in training   Unnormed MSE : 11.83374, RMSE : 3.43826, MAE : 1.81595, MAPE: 0.04014, normed MSE : 11.83374.
+this epoch costs 0.13218s
+----------------------
+Epochs 203/400
+in training   Unnormed MSE : 10.00266, RMSE : 3.08325, MAE : 1.61623, MAPE: 0.03385, normed MSE : 10.00266.
+this epoch costs 0.13176s
+----------------------
+Epochs 204/400
+in training   Unnormed MSE : 10.33741, RMSE : 3.20802, MAE : 1.65459, MAPE: 0.03307, normed MSE : 10.33741.
+this epoch costs 0.13214s
+----------------------
+Epochs 205/400
+in training   Unnormed MSE : 13.16960, RMSE : 3.60810, MAE : 1.97329, MAPE: 0.04137, normed MSE : 13.16960.
+this epoch costs 0.13243s
+----------------------
+Epochs 206/400
+in training   Unnormed MSE : 11.04007, RMSE : 3.31226, MAE : 1.74750, MAPE: 0.03651, normed MSE : 11.04007.
+this epoch costs 0.13207s
+----------------------
+Epochs 207/400
+in training   Unnormed MSE : 11.03664, RMSE : 3.31787, MAE : 1.69200, MAPE: 0.03731, normed MSE : 11.03664.
+this epoch costs 0.13222s
+----------------------
+Epochs 208/400
+in training   Unnormed MSE : 11.20891, RMSE : 3.33009, MAE : 1.72233, MAPE: 0.03576, normed MSE : 11.20891.
+this epoch costs 0.13218s
+----------------------
+Epochs 209/400
+in training   Unnormed MSE : 11.14420, RMSE : 3.33289, MAE : 1.74352, MAPE: 0.03734, normed MSE : 11.14420.
+this epoch costs 0.13236s
+----------------------
+Epochs 210/400
+in training   Unnormed MSE : 10.06624, RMSE : 3.16898, MAE : 1.60046, MAPE: 0.03146, normed MSE : 10.06624.
+this epoch costs 0.13298s
+----------------------
+Epochs 211/400
+in training   Unnormed MSE : 11.30611, RMSE : 3.34891, MAE : 1.75907, MAPE: 0.03765, normed MSE : 11.30611.
+this epoch costs 0.13228s
+----------------------
+Epochs 212/400
+in training   Unnormed MSE : 10.73652, RMSE : 3.26765, MAE : 1.64457, MAPE: 0.03399, normed MSE : 10.73652.
+this epoch costs 0.13269s
+----------------------
+Epochs 213/400
+in training   Unnormed MSE : 10.24193, RMSE : 3.19064, MAE : 1.65387, MAPE: 0.03497, normed MSE : 10.24193.
+this epoch costs 0.13227s
+----------------------
+Epochs 214/400
+in training   Unnormed MSE : 13.27427, RMSE : 3.64177, MAE : 1.88810, MAPE: 0.04261, normed MSE : 13.27427.
+this epoch costs 0.13193s
+----------------------
+Epochs 215/400
+in training   Unnormed MSE : 11.71774, RMSE : 3.39959, MAE : 1.78438, MAPE: 0.04028, normed MSE : 11.71774.
+this epoch costs 0.13199s
+----------------------
+Epochs 216/400
+in training   Unnormed MSE : 11.73011, RMSE : 3.40938, MAE : 1.74111, MAPE: 0.03664, normed MSE : 11.73011.
+this epoch costs 0.13237s
+----------------------
+Epochs 217/400
+in training   Unnormed MSE : 12.07444, RMSE : 3.46351, MAE : 1.73951, MAPE: 0.03773, normed MSE : 12.07444.
+this epoch costs 0.13234s
+----------------------
+Epochs 218/400
+in training   Unnormed MSE : 9.23951, RMSE : 3.03821, MAE : 1.60591, MAPE: 0.03275, normed MSE : 9.23951.
+this epoch costs 0.13274s
+----------------------
+Epochs 219/400
+in training   Unnormed MSE : 8.94469, RMSE : 2.97006, MAE : 1.50913, MAPE: 0.03222, normed MSE : 8.94469.
+this epoch costs 0.13241s
+----------------------
+Epochs 220/400
+in training   Unnormed MSE : 10.82511, RMSE : 3.28645, MAE : 1.68625, MAPE: 0.03473, normed MSE : 10.82511.
+this epoch costs 0.13243s
+----------------------
+Epochs 221/400
+in training   Unnormed MSE : 11.75291, RMSE : 3.42377, MAE : 1.80785, MAPE: 0.03802, normed MSE : 11.75291.
+this epoch costs 0.13224s
+----------------------
+Epochs 222/400
+in training   Unnormed MSE : 13.58207, RMSE : 3.68228, MAE : 1.87041, MAPE: 0.04016, normed MSE : 13.58207.
+this epoch costs 0.13261s
+----------------------
+Epochs 223/400
+in training   Unnormed MSE : 10.75029, RMSE : 3.26478, MAE : 1.68883, MAPE: 0.03789, normed MSE : 10.75029.
+this epoch costs 0.13286s
+----------------------
+Epochs 224/400
+in training   Unnormed MSE : 12.84005, RMSE : 3.57297, MAE : 1.93792, MAPE: 0.04072, normed MSE : 12.84005.
+this epoch costs 0.13338s
+----------------------
+Epochs 225/400
+in training   Unnormed MSE : 11.32423, RMSE : 3.32959, MAE : 1.70407, MAPE: 0.03811, normed MSE : 11.32423.
+this epoch costs 0.13294s
+----------------------
+Epochs 226/400
+in training   Unnormed MSE : 8.36586, RMSE : 2.88340, MAE : 1.48944, MAPE: 0.02852, normed MSE : 8.36586.
+Best model. Saved.
+this epoch costs 0.14671s
+----------------------
+Epochs 227/400
+in training   Unnormed MSE : 13.07442, RMSE : 3.61563, MAE : 1.89726, MAPE: 0.04057, normed MSE : 13.07442.
+this epoch costs 0.13257s
+----------------------
+Epochs 228/400
+in training   Unnormed MSE : 9.25438, RMSE : 3.03989, MAE : 1.58522, MAPE: 0.03077, normed MSE : 9.25438.
+this epoch costs 0.13241s
+----------------------
+Epochs 229/400
+in training   Unnormed MSE : 10.54337, RMSE : 3.20878, MAE : 1.67290, MAPE: 0.03338, normed MSE : 10.54337.
+this epoch costs 0.13227s
+----------------------
+Epochs 230/400
+in training   Unnormed MSE : 11.91670, RMSE : 3.44601, MAE : 1.75460, MAPE: 0.03993, normed MSE : 11.91670.
+this epoch costs 0.13307s
+----------------------
+Epochs 231/400
+in training   Unnormed MSE : 9.99092, RMSE : 3.15871, MAE : 1.60863, MAPE: 0.03327, normed MSE : 9.99092.
+this epoch costs 0.13191s
+----------------------
+Epochs 232/400
+in training   Unnormed MSE : 9.06954, RMSE : 2.97159, MAE : 1.54662, MAPE: 0.03433, normed MSE : 9.06954.
+this epoch costs 0.13231s
+----------------------
+Epochs 233/400
+in training   Unnormed MSE : 10.03968, RMSE : 3.16337, MAE : 1.63083, MAPE: 0.03348, normed MSE : 10.03968.
+this epoch costs 0.13199s
+----------------------
+Epochs 234/400
+in training   Unnormed MSE : 9.32861, RMSE : 3.04468, MAE : 1.52714, MAPE: 0.03135, normed MSE : 9.32861.
+this epoch costs 0.13269s
+----------------------
+Epochs 235/400
+in training   Unnormed MSE : 11.16272, RMSE : 3.33283, MAE : 1.68117, MAPE: 0.03597, normed MSE : 11.16272.
+this epoch costs 0.13249s
+----------------------
+Epochs 236/400
+in training   Unnormed MSE : 13.77318, RMSE : 3.70960, MAE : 1.96708, MAPE: 0.04415, normed MSE : 13.77318.
+this epoch costs 0.13308s
+----------------------
+Epochs 237/400
+in training   Unnormed MSE : 11.29407, RMSE : 3.34531, MAE : 1.77731, MAPE: 0.03693, normed MSE : 11.29407.
+this epoch costs 0.1321s
+----------------------
+Epochs 238/400
+in training   Unnormed MSE : 11.53661, RMSE : 3.39641, MAE : 1.74039, MAPE: 0.03792, normed MSE : 11.53661.
+this epoch costs 0.13224s
+----------------------
+Epochs 239/400
+in training   Unnormed MSE : 9.87948, RMSE : 3.14253, MAE : 1.63836, MAPE: 0.03340, normed MSE : 9.87948.
+this epoch costs 0.13231s
+----------------------
+Epochs 240/400
+in training   Unnormed MSE : 8.50508, RMSE : 2.91506, MAE : 1.54437, MAPE: 0.02987, normed MSE : 8.50508.
+this epoch costs 0.13308s
+----------------------
+Epochs 241/400
+in training   Unnormed MSE : 10.14479, RMSE : 3.18106, MAE : 1.60554, MAPE: 0.03416, normed MSE : 10.14479.
+this epoch costs 0.13218s
+----------------------
+Epochs 242/400
+in training   Unnormed MSE : 10.54271, RMSE : 3.22662, MAE : 1.66492, MAPE: 0.03535, normed MSE : 10.54271.
+this epoch costs 0.13246s
+----------------------
+Epochs 243/400
+in training   Unnormed MSE : 8.64794, RMSE : 2.91504, MAE : 1.48309, MAPE: 0.02976, normed MSE : 8.64794.
+Best model. Saved.
+this epoch costs 0.14161s
+----------------------
+Epochs 244/400
+in training   Unnormed MSE : 9.64106, RMSE : 3.06276, MAE : 1.60852, MAPE: 0.03292, normed MSE : 9.64106.
+this epoch costs 0.13298s
+----------------------
+Epochs 245/400
+in training   Unnormed MSE : 9.18109, RMSE : 3.01892, MAE : 1.59319, MAPE: 0.03091, normed MSE : 9.18109.
+this epoch costs 0.13217s
+----------------------
+Epochs 246/400
+in training   Unnormed MSE : 13.33198, RMSE : 3.61577, MAE : 1.95974, MAPE: 0.04330, normed MSE : 13.33198.
+this epoch costs 0.13312s
+----------------------
+Epochs 247/400
+in training   Unnormed MSE : 11.07330, RMSE : 3.31476, MAE : 1.74213, MAPE: 0.03656, normed MSE : 11.07330.
+this epoch costs 0.13228s
+----------------------
+Epochs 248/400
+in training   Unnormed MSE : 9.32555, RMSE : 2.99735, MAE : 1.58313, MAPE: 0.03166, normed MSE : 9.32555.
+this epoch costs 0.13207s
+----------------------
+Epochs 249/400
+in training   Unnormed MSE : 12.27332, RMSE : 3.48405, MAE : 1.84635, MAPE: 0.04087, normed MSE : 12.27332.
+this epoch costs 0.13259s
+----------------------
+Epochs 250/400
+in training   Unnormed MSE : 8.96653, RMSE : 2.98151, MAE : 1.59937, MAPE: 0.03094, normed MSE : 8.96653.
+this epoch costs 0.13206s
+----------------------
+Epochs 251/400
+in training   Unnormed MSE : 12.61963, RMSE : 3.54037, MAE : 1.82937, MAPE: 0.04066, normed MSE : 12.61963.
+this epoch costs 0.13318s
+----------------------
+Epochs 252/400
+in training   Unnormed MSE : 12.26346, RMSE : 3.50035, MAE : 1.88871, MAPE: 0.04050, normed MSE : 12.26346.
+this epoch costs 0.13285s
+----------------------
+Epochs 253/400
+in training   Unnormed MSE : 10.18642, RMSE : 3.18632, MAE : 1.64751, MAPE: 0.03352, normed MSE : 10.18642.
+this epoch costs 0.13211s
+----------------------
+Epochs 254/400
+in training   Unnormed MSE : 9.73460, RMSE : 3.10850, MAE : 1.61561, MAPE: 0.03397, normed MSE : 9.73459.
+this epoch costs 0.13414s
+----------------------
+Epochs 255/400
+in training   Unnormed MSE : 12.35860, RMSE : 3.50514, MAE : 1.87576, MAPE: 0.04139, normed MSE : 12.35860.
+this epoch costs 0.13241s
+----------------------
+Epochs 256/400
+in training   Unnormed MSE : 10.14246, RMSE : 3.17491, MAE : 1.64532, MAPE: 0.03431, normed MSE : 10.14246.
+this epoch costs 0.13217s
+----------------------
+Epochs 257/400
+in training   Unnormed MSE : 8.45222, RMSE : 2.90506, MAE : 1.51912, MAPE: 0.03023, normed MSE : 8.45222.
+this epoch costs 0.13279s
+----------------------
+Epochs 258/400
+in training   Unnormed MSE : 9.60979, RMSE : 3.09424, MAE : 1.60852, MAPE: 0.03315, normed MSE : 9.60979.
+this epoch costs 0.1322s
+----------------------
+Epochs 259/400
+in training   Unnormed MSE : 9.61612, RMSE : 3.09429, MAE : 1.56788, MAPE: 0.03223, normed MSE : 9.61612.
+this epoch costs 0.13199s
+----------------------
+Epochs 260/400
+in training   Unnormed MSE : 9.24505, RMSE : 3.03233, MAE : 1.57294, MAPE: 0.03172, normed MSE : 9.24505.
+this epoch costs 0.13206s
+----------------------
+Epochs 261/400
+in training   Unnormed MSE : 9.05380, RMSE : 2.99562, MAE : 1.55979, MAPE: 0.03254, normed MSE : 9.05380.
+this epoch costs 0.13217s
+----------------------
+Epochs 262/400
+in training   Unnormed MSE : 8.48250, RMSE : 2.88161, MAE : 1.46845, MAPE: 0.03073, normed MSE : 8.48250.
+Best model. Saved.
+this epoch costs 0.14335s
+----------------------
+Epochs 263/400
+in training   Unnormed MSE : 8.54876, RMSE : 2.92025, MAE : 1.49279, MAPE: 0.03058, normed MSE : 8.54876.
+this epoch costs 0.13305s
+----------------------
+Epochs 264/400
+in training   Unnormed MSE : 11.29229, RMSE : 3.35853, MAE : 1.70768, MAPE: 0.03862, normed MSE : 11.29229.
+this epoch costs 0.13247s
+----------------------
+Epochs 265/400
+in training   Unnormed MSE : 9.55706, RMSE : 3.08979, MAE : 1.57482, MAPE: 0.03246, normed MSE : 9.55706.
+this epoch costs 0.13204s
+----------------------
+Epochs 266/400
+in training   Unnormed MSE : 10.89528, RMSE : 3.29568, MAE : 1.75358, MAPE: 0.03690, normed MSE : 10.89528.
+this epoch costs 0.13254s
+----------------------
+Epochs 267/400
+in training   Unnormed MSE : 11.80524, RMSE : 3.42472, MAE : 1.74295, MAPE: 0.03753, normed MSE : 11.80524.
+this epoch costs 0.13232s
+----------------------
+Epochs 268/400
+in training   Unnormed MSE : 9.48359, RMSE : 3.07045, MAE : 1.58521, MAPE: 0.03136, normed MSE : 9.48359.
+this epoch costs 0.13231s
+----------------------
+Epochs 269/400
+in training   Unnormed MSE : 10.87167, RMSE : 3.29692, MAE : 1.71252, MAPE: 0.03684, normed MSE : 10.87167.
+this epoch costs 0.13232s
+----------------------
+Epochs 270/400
+in training   Unnormed MSE : 9.03566, RMSE : 2.98691, MAE : 1.58366, MAPE: 0.03168, normed MSE : 9.03566.
+this epoch costs 0.13241s
+----------------------
+Epochs 271/400
+in training   Unnormed MSE : 9.37737, RMSE : 3.06133, MAE : 1.64254, MAPE: 0.03202, normed MSE : 9.37737.
+this epoch costs 0.13217s
+----------------------
+Epochs 272/400
+in training   Unnormed MSE : 9.08379, RMSE : 2.98936, MAE : 1.52785, MAPE: 0.03048, normed MSE : 9.08379.
+this epoch costs 0.13299s
+----------------------
+Epochs 273/400
+in training   Unnormed MSE : 11.81185, RMSE : 3.39695, MAE : 1.93605, MAPE: 0.04038, normed MSE : 11.81185.
+this epoch costs 0.13179s
+----------------------
+Epochs 274/400
+in training   Unnormed MSE : 9.83340, RMSE : 3.11720, MAE : 1.68107, MAPE: 0.03505, normed MSE : 9.83340.
+this epoch costs 0.13269s
+----------------------
+Epochs 275/400
+in training   Unnormed MSE : 9.83581, RMSE : 3.13071, MAE : 1.57946, MAPE: 0.03135, normed MSE : 9.83581.
+this epoch costs 0.13321s
+----------------------
+Epochs 276/400
+in training   Unnormed MSE : 11.06762, RMSE : 3.32093, MAE : 1.73723, MAPE: 0.03768, normed MSE : 11.06762.
+this epoch costs 0.13394s
+----------------------
+Epochs 277/400
+in training   Unnormed MSE : 10.86765, RMSE : 3.29460, MAE : 1.71084, MAPE: 0.03510, normed MSE : 10.86765.
+this epoch costs 0.13229s
+----------------------
+Epochs 278/400
+in training   Unnormed MSE : 9.65247, RMSE : 3.09109, MAE : 1.56371, MAPE: 0.03261, normed MSE : 9.65247.
+this epoch costs 0.13456s
+----------------------
+Epochs 279/400
+in training   Unnormed MSE : 8.67381, RMSE : 2.93108, MAE : 1.56319, MAPE: 0.03020, normed MSE : 8.67381.
+this epoch costs 0.13231s
+----------------------
+Epochs 280/400
+in training   Unnormed MSE : 11.93495, RMSE : 3.44745, MAE : 1.77595, MAPE: 0.04056, normed MSE : 11.93495.
+this epoch costs 0.13242s
+----------------------
+Epochs 281/400
+in training   Unnormed MSE : 8.48651, RMSE : 2.91304, MAE : 1.50170, MAPE: 0.02900, normed MSE : 8.48651.
+this epoch costs 0.13256s
+----------------------
+Epochs 282/400
+in training   Unnormed MSE : 9.22623, RMSE : 3.00144, MAE : 1.59494, MAPE: 0.03284, normed MSE : 9.22623.
+this epoch costs 0.13313s
+----------------------
+Epochs 283/400
+in training   Unnormed MSE : 7.53143, RMSE : 2.72161, MAE : 1.39733, MAPE: 0.02911, normed MSE : 7.53143.
+Best model. Saved.
+this epoch costs 0.14608s
+----------------------
+Epochs 284/400
+in training   Unnormed MSE : 9.19817, RMSE : 3.02131, MAE : 1.52446, MAPE: 0.03146, normed MSE : 9.19817.
+this epoch costs 0.13221s
+----------------------
+Epochs 285/400
+in training   Unnormed MSE : 10.21749, RMSE : 3.17444, MAE : 1.66858, MAPE: 0.03408, normed MSE : 10.21749.
+this epoch costs 0.13242s
+----------------------
+Epochs 286/400
+in training   Unnormed MSE : 12.39729, RMSE : 3.50755, MAE : 1.84112, MAPE: 0.04024, normed MSE : 12.39729.
+this epoch costs 0.13246s
+----------------------
+Epochs 287/400
+in training   Unnormed MSE : 8.69382, RMSE : 2.94580, MAE : 1.49888, MAPE: 0.03055, normed MSE : 8.69382.
+this epoch costs 0.13264s
+----------------------
+Epochs 288/400
+in training   Unnormed MSE : 9.31709, RMSE : 3.03684, MAE : 1.60328, MAPE: 0.03229, normed MSE : 9.31709.
+this epoch costs 0.13313s
+----------------------
+Epochs 289/400
+in training   Unnormed MSE : 11.38586, RMSE : 3.37242, MAE : 1.68285, MAPE: 0.03709, normed MSE : 11.38586.
+this epoch costs 0.13205s
+----------------------
+Epochs 290/400
+in training   Unnormed MSE : 10.73605, RMSE : 3.27507, MAE : 1.75110, MAPE: 0.03616, normed MSE : 10.73605.
+this epoch costs 0.13204s
+----------------------
+Epochs 291/400
+in training   Unnormed MSE : 8.62370, RMSE : 2.92369, MAE : 1.49313, MAPE: 0.03033, normed MSE : 8.62370.
+this epoch costs 0.13207s
+----------------------
+Epochs 292/400
+in training   Unnormed MSE : 10.12508, RMSE : 3.17775, MAE : 1.62677, MAPE: 0.03477, normed MSE : 10.12508.
+this epoch costs 0.13265s
+----------------------
+Epochs 293/400
+in training   Unnormed MSE : 9.57644, RMSE : 3.09367, MAE : 1.56745, MAPE: 0.03326, normed MSE : 9.57644.
+this epoch costs 0.13232s
+----------------------
+Epochs 294/400
+in training   Unnormed MSE : 10.04629, RMSE : 3.15799, MAE : 1.63955, MAPE: 0.03499, normed MSE : 10.04629.
+this epoch costs 0.13233s
+----------------------
+Epochs 295/400
+in training   Unnormed MSE : 9.14101, RMSE : 2.99330, MAE : 1.53758, MAPE: 0.03146, normed MSE : 9.14101.
+this epoch costs 0.1323s
+----------------------
+Epochs 296/400
+in training   Unnormed MSE : 9.79113, RMSE : 3.10629, MAE : 1.63337, MAPE: 0.03392, normed MSE : 9.79113.
+this epoch costs 0.13199s
+----------------------
+Epochs 297/400
+in training   Unnormed MSE : 8.61314, RMSE : 2.93065, MAE : 1.54572, MAPE: 0.03059, normed MSE : 8.61314.
+this epoch costs 0.13226s
+----------------------
+Epochs 298/400
+in training   Unnormed MSE : 8.59449, RMSE : 2.92535, MAE : 1.49611, MAPE: 0.03189, normed MSE : 8.59449.
+this epoch costs 0.13232s
+----------------------
+Epochs 299/400
+in training   Unnormed MSE : 10.25087, RMSE : 3.19144, MAE : 1.68017, MAPE: 0.03397, normed MSE : 10.25087.
+this epoch costs 0.1321s
+----------------------
+Epochs 300/400
+in training   Unnormed MSE : 9.81903, RMSE : 3.12163, MAE : 1.62369, MAPE: 0.03360, normed MSE : 9.81903.
+this epoch costs 0.13277s
+----------------------
+Epochs 301/400
+in training   Unnormed MSE : 10.61048, RMSE : 3.24862, MAE : 1.67532, MAPE: 0.03649, normed MSE : 10.61048.
+this epoch costs 0.13211s
+----------------------
+Epochs 302/400
+in training   Unnormed MSE : 9.21522, RMSE : 3.03554, MAE : 1.54839, MAPE: 0.03019, normed MSE : 9.21522.
+this epoch costs 0.13292s
+----------------------
+Epochs 303/400
+in training   Unnormed MSE : 9.98318, RMSE : 3.15846, MAE : 1.64691, MAPE: 0.03540, normed MSE : 9.98318.
+this epoch costs 0.13252s
+----------------------
+Epochs 304/400
+in training   Unnormed MSE : 9.06514, RMSE : 2.98141, MAE : 1.57413, MAPE: 0.03164, normed MSE : 9.06514.
+this epoch costs 0.13252s
+----------------------
+Epochs 305/400
+in training   Unnormed MSE : 11.37466, RMSE : 3.35434, MAE : 1.77348, MAPE: 0.03940, normed MSE : 11.37466.
+this epoch costs 0.13245s
+----------------------
+Epochs 306/400
+in training   Unnormed MSE : 8.29978, RMSE : 2.87536, MAE : 1.55207, MAPE: 0.03159, normed MSE : 8.29978.
+this epoch costs 0.1322s
+----------------------
+Epochs 307/400
+in training   Unnormed MSE : 9.11082, RMSE : 3.01651, MAE : 1.51525, MAPE: 0.03089, normed MSE : 9.11082.
+this epoch costs 0.13184s
+----------------------
+Epochs 308/400
+in training   Unnormed MSE : 9.39846, RMSE : 3.05845, MAE : 1.57781, MAPE: 0.03345, normed MSE : 9.39846.
+this epoch costs 0.13217s
+----------------------
+Epochs 309/400
+in training   Unnormed MSE : 8.72564, RMSE : 2.93275, MAE : 1.50230, MAPE: 0.02934, normed MSE : 8.72564.
+this epoch costs 0.13196s
+----------------------
+Epochs 310/400
+in training   Unnormed MSE : 10.63329, RMSE : 3.25932, MAE : 1.64076, MAPE: 0.03592, normed MSE : 10.63329.
+this epoch costs 0.13257s
+----------------------
+Epochs 311/400
+in training   Unnormed MSE : 8.56957, RMSE : 2.92618, MAE : 1.53148, MAPE: 0.03022, normed MSE : 8.56957.
+this epoch costs 0.13197s
+----------------------
+Epochs 312/400
+in training   Unnormed MSE : 11.49941, RMSE : 3.35031, MAE : 1.75843, MAPE: 0.03737, normed MSE : 11.49941.
+this epoch costs 0.13311s
+----------------------
+Epochs 313/400
+in training   Unnormed MSE : 10.83846, RMSE : 3.27859, MAE : 1.61893, MAPE: 0.03503, normed MSE : 10.83846.
+this epoch costs 0.13191s
+----------------------
+Epochs 314/400
+in training   Unnormed MSE : 10.68559, RMSE : 3.26356, MAE : 1.66797, MAPE: 0.03585, normed MSE : 10.68559.
+this epoch costs 0.13245s
+----------------------
+Epochs 315/400
+in training   Unnormed MSE : 11.39139, RMSE : 3.37341, MAE : 1.75688, MAPE: 0.03659, normed MSE : 11.39139.
+this epoch costs 0.1325s
+----------------------
+Epochs 316/400
+in training   Unnormed MSE : 11.98254, RMSE : 3.45659, MAE : 1.81441, MAPE: 0.03887, normed MSE : 11.98255.
+this epoch costs 0.13244s
+----------------------
+Epochs 317/400
+in training   Unnormed MSE : 11.76130, RMSE : 3.42081, MAE : 1.79599, MAPE: 0.04028, normed MSE : 11.76130.
+this epoch costs 0.13214s
+----------------------
+Epochs 318/400
+in training   Unnormed MSE : 8.32649, RMSE : 2.87344, MAE : 1.53174, MAPE: 0.03083, normed MSE : 8.32649.
+this epoch costs 0.13197s
+----------------------
+Epochs 319/400
+in training   Unnormed MSE : 11.03675, RMSE : 3.31809, MAE : 1.71563, MAPE: 0.03877, normed MSE : 11.03675.
+this epoch costs 0.13187s
+----------------------
+Epochs 320/400
+in training   Unnormed MSE : 10.52604, RMSE : 3.24349, MAE : 1.71647, MAPE: 0.03686, normed MSE : 10.52604.
+this epoch costs 0.13214s
+----------------------
+Epochs 321/400
+in training   Unnormed MSE : 7.94533, RMSE : 2.81071, MAE : 1.48120, MAPE: 0.02982, normed MSE : 7.94533.
+this epoch costs 0.13188s
+----------------------
+Epochs 322/400
+in training   Unnormed MSE : 8.53190, RMSE : 2.90869, MAE : 1.54079, MAPE: 0.03125, normed MSE : 8.53190.
+this epoch costs 0.13294s
+----------------------
+Epochs 323/400
+in training   Unnormed MSE : 7.89794, RMSE : 2.80166, MAE : 1.48051, MAPE: 0.02923, normed MSE : 7.89794.
+this epoch costs 0.13213s
+----------------------
+Epochs 324/400
+in training   Unnormed MSE : 7.90232, RMSE : 2.80419, MAE : 1.46330, MAPE: 0.02913, normed MSE : 7.90232.
+this epoch costs 0.13236s
+----------------------
+Epochs 325/400
+in training   Unnormed MSE : 10.80969, RMSE : 3.27672, MAE : 1.70411, MAPE: 0.03709, normed MSE : 10.80969.
+this epoch costs 0.13187s
+----------------------
+Epochs 326/400
+in training   Unnormed MSE : 11.47870, RMSE : 3.38086, MAE : 1.76080, MAPE: 0.03773, normed MSE : 11.47870.
+this epoch costs 0.13188s
+----------------------
+Epochs 327/400
+in training   Unnormed MSE : 8.42093, RMSE : 2.90020, MAE : 1.50047, MAPE: 0.03173, normed MSE : 8.42093.
+this epoch costs 0.13192s
+----------------------
+Epochs 328/400
+in training   Unnormed MSE : 9.38466, RMSE : 3.05272, MAE : 1.59040, MAPE: 0.03254, normed MSE : 9.38466.
+this epoch costs 0.13212s
+----------------------
+Epochs 329/400
+in training   Unnormed MSE : 9.75799, RMSE : 3.10138, MAE : 1.66318, MAPE: 0.03560, normed MSE : 9.75799.
+this epoch costs 0.13286s
+----------------------
+Epochs 330/400
+in training   Unnormed MSE : 9.93657, RMSE : 3.14752, MAE : 1.61254, MAPE: 0.03475, normed MSE : 9.93657.
+this epoch costs 0.13284s
+----------------------
+Epochs 331/400
+in training   Unnormed MSE : 9.55971, RMSE : 3.07206, MAE : 1.60116, MAPE: 0.03426, normed MSE : 9.55971.
+this epoch costs 0.13223s
+----------------------
+Epochs 332/400
+in training   Unnormed MSE : 10.78411, RMSE : 3.27681, MAE : 1.71896, MAPE: 0.03778, normed MSE : 10.78411.
+this epoch costs 0.13309s
+----------------------
+Epochs 333/400
+in training   Unnormed MSE : 8.40023, RMSE : 2.85884, MAE : 1.52479, MAPE: 0.03070, normed MSE : 8.40023.
+this epoch costs 0.13203s
+----------------------
+Epochs 334/400
+in training   Unnormed MSE : 8.79652, RMSE : 2.95828, MAE : 1.55987, MAPE: 0.03221, normed MSE : 8.79652.
+this epoch costs 0.13322s
+----------------------
+Epochs 335/400
+in training   Unnormed MSE : 8.27096, RMSE : 2.85272, MAE : 1.51315, MAPE: 0.02941, normed MSE : 8.27096.
+this epoch costs 0.13281s
+----------------------
+Epochs 336/400
+in training   Unnormed MSE : 7.95163, RMSE : 2.81399, MAE : 1.42054, MAPE: 0.02874, normed MSE : 7.95163.
+this epoch costs 0.13327s
+----------------------
+Epochs 337/400
+in training   Unnormed MSE : 7.98480, RMSE : 2.80738, MAE : 1.47931, MAPE: 0.03134, normed MSE : 7.98480.
+this epoch costs 0.13225s
+----------------------
+Epochs 338/400
+in training   Unnormed MSE : 12.46824, RMSE : 3.51775, MAE : 1.86123, MAPE: 0.04187, normed MSE : 12.46824.
+this epoch costs 0.13361s
+----------------------
+Epochs 339/400
+in training   Unnormed MSE : 9.10120, RMSE : 2.99961, MAE : 1.61672, MAPE: 0.03179, normed MSE : 9.10120.
+this epoch costs 0.13214s
+----------------------
+Epochs 340/400
+in training   Unnormed MSE : 9.71319, RMSE : 3.09521, MAE : 1.62374, MAPE: 0.03503, normed MSE : 9.71319.
+this epoch costs 0.13244s
+----------------------
+Epochs 341/400
+in training   Unnormed MSE : 8.33206, RMSE : 2.88303, MAE : 1.50370, MAPE: 0.03095, normed MSE : 8.33206.
+this epoch costs 0.13238s
+----------------------
+Epochs 342/400
+in training   Unnormed MSE : 8.53646, RMSE : 2.91428, MAE : 1.49172, MAPE: 0.03142, normed MSE : 8.53646.
+this epoch costs 0.13257s
+----------------------
+Epochs 343/400
+in training   Unnormed MSE : 9.06486, RMSE : 2.99606, MAE : 1.59921, MAPE: 0.03260, normed MSE : 9.06486.
+this epoch costs 0.13209s
+----------------------
+Epochs 344/400
+in training   Unnormed MSE : 9.43616, RMSE : 3.07068, MAE : 1.62530, MAPE: 0.03472, normed MSE : 9.43616.
+this epoch costs 0.13283s
+----------------------
+Epochs 345/400
+in training   Unnormed MSE : 7.34177, RMSE : 2.64386, MAE : 1.42756, MAPE: 0.02762, normed MSE : 7.34177.
+this epoch costs 0.13189s
+----------------------
+Epochs 346/400
+in training   Unnormed MSE : 7.62762, RMSE : 2.75489, MAE : 1.47785, MAPE: 0.02852, normed MSE : 7.62762.
+this epoch costs 0.13299s
+----------------------
+Epochs 347/400
+in training   Unnormed MSE : 7.93095, RMSE : 2.80954, MAE : 1.46505, MAPE: 0.02925, normed MSE : 7.93095.
+this epoch costs 0.13249s
+----------------------
+Epochs 348/400
+in training   Unnormed MSE : 9.23796, RMSE : 3.01084, MAE : 1.59961, MAPE: 0.03284, normed MSE : 9.23796.
+this epoch costs 0.13221s
+----------------------
+Epochs 349/400
+in training   Unnormed MSE : 9.51974, RMSE : 3.07341, MAE : 1.60082, MAPE: 0.03175, normed MSE : 9.51974.
+this epoch costs 0.13237s
+----------------------
+Epochs 350/400
+in training   Unnormed MSE : 8.09964, RMSE : 2.84387, MAE : 1.53987, MAPE: 0.02999, normed MSE : 8.09964.
+this epoch costs 0.1325s
+----------------------
+Epochs 351/400
+in training   Unnormed MSE : 10.62284, RMSE : 3.23930, MAE : 1.68226, MAPE: 0.03565, normed MSE : 10.62285.
+this epoch costs 0.13244s
+----------------------
+Epochs 352/400
+in training   Unnormed MSE : 8.73062, RMSE : 2.91590, MAE : 1.58293, MAPE: 0.03157, normed MSE : 8.73062.
+this epoch costs 0.13289s
+----------------------
+Epochs 353/400
+in training   Unnormed MSE : 8.60248, RMSE : 2.92325, MAE : 1.51644, MAPE: 0.03119, normed MSE : 8.60248.
+this epoch costs 0.13219s
+----------------------
+Epochs 354/400
+in training   Unnormed MSE : 9.28397, RMSE : 3.04642, MAE : 1.61321, MAPE: 0.03552, normed MSE : 9.28396.
+this epoch costs 0.13275s
+----------------------
+Epochs 355/400
+in training   Unnormed MSE : 10.48452, RMSE : 3.22348, MAE : 1.66469, MAPE: 0.03455, normed MSE : 10.48452.
+this epoch costs 0.13265s
+----------------------
+Epochs 356/400
+in training   Unnormed MSE : 9.66803, RMSE : 3.08488, MAE : 1.63617, MAPE: 0.03627, normed MSE : 9.66803.
+this epoch costs 0.1331s
+----------------------
+Epochs 357/400
+in training   Unnormed MSE : 10.94788, RMSE : 3.30699, MAE : 1.69331, MAPE: 0.03565, normed MSE : 10.94789.
+this epoch costs 0.13214s
+----------------------
+Epochs 358/400
+in training   Unnormed MSE : 8.62195, RMSE : 2.92975, MAE : 1.61489, MAPE: 0.03168, normed MSE : 8.62195.
+this epoch costs 0.13316s
+----------------------
+Epochs 359/400
+in training   Unnormed MSE : 10.67971, RMSE : 3.26104, MAE : 1.68970, MAPE: 0.03541, normed MSE : 10.67971.
+this epoch costs 0.13184s
+/data/OuXiaoyu/TPB-master/./model/Meta_Models/rep_model_final.py:130: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  pattern = torch.load(PatchFSL_cfg['base_dir'] / 'pattern/{}/{}_{}_cl.pt'.format(PatchFSL_cfg["data_list"],PatchFSL_cfg["sim"],PatchFSL_cfg["K"]))
+/data/OuXiaoyu/miniconda3/envs/tslib/lib/python3.8/site-packages/torch/nn/modules/transformer.py:307: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.self_attn.batch_first was not True(use batch_first for better inference performance)
+  warnings.warn(f"enable_nested_tensor is True, but self.use_nested_tensor is False because {why_not_sparsity_fast_path}")
+/data/OuXiaoyu/TPB-master/./model/Meta_Models/rep_model_final.py:430: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  A_gnd = torch.tensor(A_gnd,dtype=torch.float32).to(self.device)
+/data/OuXiaoyu/TPB-master/./model/Meta_Models/rep_model_final.py:206: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  x, y, means, stds, A = torch.tensor(x).to(self.PatchFSL_cfg['device']), torch.tensor(y).to(self.PatchFSL_cfg['device']),torch.tensor(means).to(self.PatchFSL_cfg['device']),torch.tensor(stds).to(self.PatchFSL_cfg['device']),torch.tensor(A,dtype=torch.float32).to(self.PatchFSL_cfg['device'])
+/data/OuXiaoyu/TPB-master/./model/Meta_Models/rep_model_final.py:465: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  A_gnd = torch.tensor(A_gnd,dtype=torch.float32).to(self.device)
+/data/OuXiaoyu/TPB-master/./model/Meta_Models/rep_model_final.py:569: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  A_gnd = torch.tensor(A_gnd,dtype=torch.float32).to(self.device)
+/data/OuXiaoyu/TPB-master/./model/Meta_Models/rep_model_final.py:622: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  A_gnd = torch.tensor(A_gnd,dtype=torch.float32).to(self.device)
+----------------------
+Epochs 360/400
+in training   Unnormed MSE : 10.97709, RMSE : 3.30102, MAE : 1.72477, MAPE: 0.03753, normed MSE : 10.97709.
+this epoch costs 0.13296s
+----------------------
+Epochs 361/400
+in training   Unnormed MSE : 13.20350, RMSE : 3.60910, MAE : 1.87665, MAPE: 0.04273, normed MSE : 13.20350.
+this epoch costs 0.13271s
+----------------------
+Epochs 362/400
+in training   Unnormed MSE : 10.10688, RMSE : 3.16014, MAE : 1.65489, MAPE: 0.03406, normed MSE : 10.10688.
+this epoch costs 0.13229s
+----------------------
+Epochs 363/400
+in training   Unnormed MSE : 10.94136, RMSE : 3.29544, MAE : 1.70766, MAPE: 0.03818, normed MSE : 10.94136.
+this epoch costs 0.13224s
+----------------------
+Epochs 364/400
+in training   Unnormed MSE : 12.02524, RMSE : 3.46517, MAE : 1.84354, MAPE: 0.03917, normed MSE : 12.02524.
+this epoch costs 0.13291s
+----------------------
+Epochs 365/400
+in training   Unnormed MSE : 8.95767, RMSE : 2.98735, MAE : 1.59310, MAPE: 0.03305, normed MSE : 8.95767.
+this epoch costs 0.13274s
+----------------------
+Epochs 366/400
+in training   Unnormed MSE : 10.70393, RMSE : 3.26641, MAE : 1.66853, MAPE: 0.03542, normed MSE : 10.70393.
+this epoch costs 0.13296s
+----------------------
+Epochs 367/400
+in training   Unnormed MSE : 8.71612, RMSE : 2.95140, MAE : 1.54892, MAPE: 0.03085, normed MSE : 8.71612.
+this epoch costs 0.13235s
+----------------------
+Epochs 368/400
+in training   Unnormed MSE : 7.51388, RMSE : 2.71427, MAE : 1.43815, MAPE: 0.02915, normed MSE : 7.51388.
+this epoch costs 0.13295s
+----------------------
+Epochs 369/400
+in training   Unnormed MSE : 10.09209, RMSE : 3.17584, MAE : 1.63001, MAPE: 0.03490, normed MSE : 10.09209.
+this epoch costs 0.13235s
+----------------------
+Epochs 370/400
+in training   Unnormed MSE : 8.27452, RMSE : 2.84546, MAE : 1.45784, MAPE: 0.02894, normed MSE : 8.27452.
+this epoch costs 0.13309s
+----------------------
+Epochs 371/400
+in training   Unnormed MSE : 10.38233, RMSE : 3.21516, MAE : 1.72265, MAPE: 0.03507, normed MSE : 10.38233.
+this epoch costs 0.13179s
+----------------------
+Epochs 372/400
+in training   Unnormed MSE : 11.00247, RMSE : 3.31603, MAE : 1.66406, MAPE: 0.03454, normed MSE : 11.00247.
+this epoch costs 0.13198s
+----------------------
+Epochs 373/400
+in training   Unnormed MSE : 10.83250, RMSE : 3.28257, MAE : 1.71533, MAPE: 0.03781, normed MSE : 10.83250.
+this epoch costs 0.13234s
+----------------------
+Epochs 374/400
+in training   Unnormed MSE : 9.88265, RMSE : 3.10093, MAE : 1.67961, MAPE: 0.03555, normed MSE : 9.88265.
+this epoch costs 0.13243s
+----------------------
+Epochs 375/400
+in training   Unnormed MSE : 12.02547, RMSE : 3.44804, MAE : 1.80755, MAPE: 0.03900, normed MSE : 12.02547.
+this epoch costs 0.13251s
+----------------------
+Epochs 376/400
+in training   Unnormed MSE : 9.88393, RMSE : 3.06642, MAE : 1.66252, MAPE: 0.03766, normed MSE : 9.88392.
+this epoch costs 0.13272s
+----------------------
+Epochs 377/400
+in training   Unnormed MSE : 11.42705, RMSE : 3.37277, MAE : 1.75050, MAPE: 0.03611, normed MSE : 11.42705.
+this epoch costs 0.1326s
+----------------------
+Epochs 378/400
+in training   Unnormed MSE : 9.85093, RMSE : 3.12886, MAE : 1.61580, MAPE: 0.03511, normed MSE : 9.85093.
+this epoch costs 0.13334s
+----------------------
+Epochs 379/400
+in training   Unnormed MSE : 9.58252, RMSE : 3.09277, MAE : 1.59123, MAPE: 0.03250, normed MSE : 9.58252.
+this epoch costs 0.13202s
+----------------------
+Epochs 380/400
+in training   Unnormed MSE : 12.02286, RMSE : 3.45451, MAE : 1.86082, MAPE: 0.04221, normed MSE : 12.02286.
+this epoch costs 0.13261s
+----------------------
+Epochs 381/400
+in training   Unnormed MSE : 12.07727, RMSE : 3.46582, MAE : 1.75359, MAPE: 0.04047, normed MSE : 12.07727.
+this epoch costs 0.13194s
+----------------------
+Epochs 382/400
+in training   Unnormed MSE : 9.15492, RMSE : 3.02428, MAE : 1.52230, MAPE: 0.03369, normed MSE : 9.15492.
+this epoch costs 0.13251s
+----------------------
+Epochs 383/400
+in training   Unnormed MSE : 9.92216, RMSE : 3.13053, MAE : 1.61697, MAPE: 0.03394, normed MSE : 9.92216.
+this epoch costs 0.1322s
+----------------------
+Epochs 384/400
+in training   Unnormed MSE : 12.40623, RMSE : 3.50531, MAE : 1.77561, MAPE: 0.03717, normed MSE : 12.40623.
+this epoch costs 0.13244s
+----------------------
+Epochs 385/400
+in training   Unnormed MSE : 11.28673, RMSE : 3.35546, MAE : 1.78416, MAPE: 0.03814, normed MSE : 11.28673.
+this epoch costs 0.13238s
+----------------------
+Epochs 386/400
+in training   Unnormed MSE : 11.43678, RMSE : 3.37784, MAE : 1.79960, MAPE: 0.03917, normed MSE : 11.43678.
+this epoch costs 0.13297s
+----------------------
+Epochs 387/400
+in training   Unnormed MSE : 11.19083, RMSE : 3.31890, MAE : 1.78451, MAPE: 0.03840, normed MSE : 11.19083.
+this epoch costs 0.13241s
+----------------------
+Epochs 388/400
+in training   Unnormed MSE : 11.05898, RMSE : 3.31472, MAE : 1.78345, MAPE: 0.03821, normed MSE : 11.05898.
+this epoch costs 0.13239s
+----------------------
+Epochs 389/400
+in training   Unnormed MSE : 10.53743, RMSE : 3.23992, MAE : 1.71335, MAPE: 0.03659, normed MSE : 10.53743.
+this epoch costs 0.13284s
+----------------------
+Epochs 390/400
+in training   Unnormed MSE : 9.42166, RMSE : 3.06771, MAE : 1.59878, MAPE: 0.03149, normed MSE : 9.42166.
+this epoch costs 0.13299s
+----------------------
+Epochs 391/400
+in training   Unnormed MSE : 10.12040, RMSE : 3.17172, MAE : 1.64492, MAPE: 0.03564, normed MSE : 10.12040.
+this epoch costs 0.13324s
+----------------------
+Epochs 392/400
+in training   Unnormed MSE : 8.31425, RMSE : 2.87313, MAE : 1.50337, MAPE: 0.02836, normed MSE : 8.31425.
+this epoch costs 0.13211s
+----------------------
+Epochs 393/400
+in training   Unnormed MSE : 8.01763, RMSE : 2.81123, MAE : 1.45956, MAPE: 0.03054, normed MSE : 8.01763.
+this epoch costs 0.13166s
+----------------------
+Epochs 394/400
+in training   Unnormed MSE : 10.51606, RMSE : 3.18098, MAE : 1.65607, MAPE: 0.03547, normed MSE : 10.51606.
+this epoch costs 0.1319s
+----------------------
+Epochs 395/400
+in training   Unnormed MSE : 8.12348, RMSE : 2.84809, MAE : 1.49113, MAPE: 0.03064, normed MSE : 8.12348.
+this epoch costs 0.13256s
+----------------------
+Epochs 396/400
+in training   Unnormed MSE : 9.68748, RMSE : 3.10320, MAE : 1.63961, MAPE: 0.03384, normed MSE : 9.68748.
+this epoch costs 0.13257s
+----------------------
+Epochs 397/400
+in training   Unnormed MSE : 7.58190, RMSE : 2.74242, MAE : 1.45693, MAPE: 0.02892, normed MSE : 7.58190.
+this epoch costs 0.13209s
+----------------------
+Epochs 398/400
+in training   Unnormed MSE : 7.51351, RMSE : 2.73317, MAE : 1.43608, MAPE: 0.02796, normed MSE : 7.51351.
+this epoch costs 0.13267s
+----------------------
+Epochs 399/400
+in training   Unnormed MSE : 8.10601, RMSE : 2.82788, MAE : 1.52846, MAPE: 0.03006, normed MSE : 8.10601.
+this epoch costs 0.13224s
+[INFO] Enter test phase
+Horizon 0 : Unnormed MSE : 3.92819, RMSE : 1.96989, MAE : 1.13960, MAPE: 0.02382
+Horizon 1 : Unnormed MSE : 6.89329, RMSE : 2.60515, MAE : 1.41361, MAPE: 0.03013
+Horizon 2 : Unnormed MSE : 10.02529, RMSE : 3.13711, MAE : 1.63251, MAPE: 0.03563
+Horizon 3 : Unnormed MSE : 13.11914, RMSE : 3.58349, MAE : 1.80565, MAPE: 0.04045
+Horizon 4 : Unnormed MSE : 16.17236, RMSE : 3.97480, MAE : 1.94847, MAPE: 0.04462
+Horizon 5 : Unnormed MSE : 19.11827, RMSE : 4.31883, MAE : 2.08263, MAPE: 0.04865
+Horizon 6 : Unnormed MSE : 21.77304, RMSE : 4.60692, MAE : 2.19658, MAPE: 0.05222
+Horizon 7 : Unnormed MSE : 24.50122, RMSE : 4.88483, MAE : 2.30807, MAPE: 0.05598
+Horizon 8 : Unnormed MSE : 27.36899, RMSE : 5.16250, MAE : 2.47457, MAPE: 0.06079
+Horizon 9 : Unnormed MSE : 30.48611, RMSE : 5.44721, MAE : 2.61873, MAPE: 0.06505
+Horizon 10 : Unnormed MSE : 33.48882, RMSE : 5.70629, MAE : 2.73485, MAPE: 0.06901
+Horizon 11 : Unnormed MSE : 35.78715, RMSE : 5.89522, MAE : 2.80456, MAPE: 0.07164
