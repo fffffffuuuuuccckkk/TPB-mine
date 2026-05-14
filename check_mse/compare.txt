@@ -47,3 +47,9 @@ onlymeta_0.001_64:Average Unnormed MSE: 21.98476
 Average RMSE: 4.45145
 Average MAE: 2.24524
 Average MAPE: 0.05356
+
+
+eagt_edge_v1_gamma0.1_top20_ret8:Average Unnormed MSE: 18.10878
+Average RMSE: 4.12502
+Average MAE: 2.04138
+Average MAPE: 0.04389

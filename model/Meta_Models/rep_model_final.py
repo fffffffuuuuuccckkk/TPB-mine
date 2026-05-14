@@ -17,6 +17,7 @@ import tqdm
 
 from meta_patch import *
 from reconstruction import *
+from EAGT import EAGTGraphConstructor, SourceEvidenceCache
 import sys
 from pathlib import Path
 import os
@@ -125,6 +126,12 @@ class PatchFSL(nn.Module):
         self.meta_ib_use_label = bool(PatchFSL_cfg.get('meta_ib_use_label', True))
         self.meta_ib_modulate_pattern_query = bool(PatchFSL_cfg.get('meta_ib_modulate_pattern_query', True))
         self.meta_ib_dim = int(PatchFSL_cfg.get('meta_ib_dim', 32))
+        self.use_eagt = bool(PatchFSL_cfg.get('use_eagt', False))
+        self.eagt_debug = bool(PatchFSL_cfg.get('eagt_debug', False))
+        self.eagt_sparse_loss_weight = float(PatchFSL_cfg.get('eagt_sparse_loss_weight', 0.0))
+        self.eagt_evidence_loss_weight = float(PatchFSL_cfg.get('eagt_evidence_loss_weight', 0.0))
+        self.latest_eagt_debug = None
+        self._printed_online_eagt = False
         # Pattern_Encoder
         
         pattern = torch.load(PatchFSL_cfg['base_dir'] / 'pattern/{}/{}_{}_cl.pt'.format(PatchFSL_cfg["data_list"],PatchFSL_cfg["sim"],PatchFSL_cfg["K"]))
@@ -151,6 +158,14 @@ class PatchFSL(nn.Module):
             )
         else:
             self.task_ib_encoder = None
+        if self.use_eagt:
+            self.source_evidence_cache = PatchFSL_cfg.get('source_evidence_cache', None)
+            if self.source_evidence_cache is not None:
+                self.source_evidence_cache.to(self.PatchFSL_cfg['device'])
+            self.eagt_graph_constructor = EAGTGraphConstructor(PatchFSL_cfg)
+        else:
+            self.source_evidence_cache = None
+            self.eagt_graph_constructor = None
 
         # FC_model
         model_count={'patch':2, 'pattern':2}
@@ -206,11 +221,13 @@ class PatchFSL(nn.Module):
         x, y, means, stds, A = torch.tensor(x).to(self.PatchFSL_cfg['device']), torch.tensor(y).to(self.PatchFSL_cfg['device']),torch.tensor(means).to(self.PatchFSL_cfg['device']),torch.tensor(stds).to(self.PatchFSL_cfg['device']),torch.tensor(A,dtype=torch.float32).to(self.PatchFSL_cfg['device'])
         zero = torch.zeros((), device=x.device, dtype=x.dtype)
         ib_losses = {"pattern_ib_loss": zero, "meta_ib_loss": zero}
+        ib_losses.update({"eagt_sparse_loss": zero, "eagt_evidence_loss": zero})
         # remember that the input of TSFormer is [B, N, 2, L]
         x = x.permute(0,1,3,2)
         # shape : [B, N, 12, 1]
         raw_x = x[:,:,0:1, -12:].permute(0,1,3,2)
         raw_x_1day = x[:,:,0:1, -288:].permute(0,1,3,2)
+        eagt_history = raw_x_1day
         
         B, N, ___, __ = raw_x_1day.shape
         raw_x_1day = raw_x_1day.reshape(B, N, 24, 12)
@@ -241,6 +258,25 @@ class PatchFSL(nn.Module):
             
             
             A_patch = Reconsmodel(pattern)
+            if self.use_eagt:
+                source_cache = self.source_evidence_cache
+                if source_cache is None:
+                    if not self._printed_online_eagt:
+                        print("[EAGT] using online mini-batch source evidence cache")
+                        self._printed_online_eagt = True
+                    source_cache = SourceEvidenceCache(device=self.PatchFSL_cfg['device']).build_from_source_data(
+                        {"online": eagt_history.detach().cpu()},
+                        args=self.PatchFSL_cfg
+                    ).to(self.PatchFSL_cfg['device'])
+                A_patch, eagt_aux_loss, eagt_debug = self.eagt_graph_constructor(
+                    eagt_history,
+                    A_original=A_patch,
+                    source_cache=source_cache,
+                    return_debug=self.eagt_debug
+                )
+                ib_losses["eagt_sparse_loss"] = eagt_aux_loss["eagt_sparse_loss"]
+                ib_losses["eagt_evidence_loss"] = eagt_aux_loss["eagt_evidence_loss"]
+                self.latest_eagt_debug = eagt_debug if self.eagt_debug else None
         
         A_list = [A_patch, A_patch.permute(0,2,1)]
         
@@ -288,7 +324,12 @@ class STRep(nn.Module):
         self.use_meta_ib = bool(PatchFSL_cfg.get('use_meta_ib', False))
         self.pattern_ib_weight = float(PatchFSL_cfg.get('pattern_ib_weight', 0.0))
         self.meta_ib_weight = float(PatchFSL_cfg.get('meta_ib_weight', 0.0))
+        self.use_eagt = bool(PatchFSL_cfg.get('use_eagt', False))
+        self.eagt_sparse_loss_weight = float(PatchFSL_cfg.get('eagt_sparse_loss_weight', 0.0))
+        self.eagt_evidence_loss_weight = float(PatchFSL_cfg.get('eagt_evidence_loss_weight', 0.0))
+        self.debug_max_batches = int(PatchFSL_cfg.get('debug_max_batches', -1))
         self.ib_enabled = self.use_pattern_ib or self.use_meta_ib
+        self.extra_loss_enabled = self.ib_enabled or self.use_eagt
         self.last_ib_log = {}
 
         self.model = PatchFSL(data_args, model_args, task_args,PatchFSL_cfg).to(self.device)
@@ -305,12 +346,17 @@ class STRep(nn.Module):
     def zero_loss(self):
         return torch.zeros((), device=self.device)
 
-    def combine_losses(self, pred_loss, pattern_ib_loss=None, meta_ib_loss=None):
+    def combine_losses(self, pred_loss, pattern_ib_loss=None, meta_ib_loss=None,
+                       eagt_sparse_loss=None, eagt_evidence_loss=None):
         total_loss = pred_loss
         if self.use_pattern_ib and pattern_ib_loss is not None:
             total_loss = total_loss + self.pattern_ib_weight * pattern_ib_loss
         if self.use_meta_ib and meta_ib_loss is not None:
             total_loss = total_loss + self.meta_ib_weight * meta_ib_loss
+        if self.use_eagt and eagt_sparse_loss is not None:
+            total_loss = total_loss + self.eagt_sparse_loss_weight * eagt_sparse_loss
+        if self.use_eagt and eagt_evidence_loss is not None:
+            total_loss = total_loss + self.eagt_evidence_loss_weight * eagt_evidence_loss
         return total_loss
 
     def _predict_loss(self, out, y, meta_graph, matrix, stage='source'):
@@ -319,7 +365,7 @@ class STRep(nn.Module):
         return self.calculate_loss(out, y, meta_graph, matrix, stage, graph_loss=False)
 
     def _forward_with_optional_ib(self, data_i, A_gnd, stage='train', u_tau=None):
-        if self.ib_enabled:
+        if self.extra_loss_enabled:
             out, y, meta_graph, ib_losses = self.model(data_i, A_gnd, stage=stage, u_tau=u_tau, return_ib_loss=True)
         else:
             out, y, meta_graph = self.model(data_i, A_gnd, stage=stage)
@@ -340,7 +386,8 @@ class STRep(nn.Module):
             "config": config,
             "best_metric": best_metric,
             "use_pattern_ib": self.use_pattern_ib,
-            "use_meta_ib": self.use_meta_ib
+            "use_meta_ib": self.use_meta_ib,
+            "use_eagt": self.use_eagt
         }
     
     def get_per_step_loss_importance_vector(self):
@@ -412,7 +459,10 @@ class STRep(nn.Module):
         
         # taskwise loss, precision
         task_losses = []
-        for i in range(self.task_num):
+        active_task_num = self.task_num
+        if self.debug_max_batches > 0:
+            active_task_num = min(active_task_num, self.debug_max_batches, len(data_spt), len(data_qry))
+        for i in range(active_task_num):
             # maml_params = deepcopy(init_params)
             for idx, (init_param, model_param) in enumerate(zip(init_params, self.model.parameters())):
                 model_param.data = init_param
@@ -439,8 +489,14 @@ class STRep(nn.Module):
                 
                 # 2: use the output to compute the grad
                 pred_loss = self._predict_loss(out, y, meta_graph, matrix_spt[i], 'source')
-                loss = self.combine_losses(pred_loss, ib_losses["pattern_ib_loss"], meta_ib_loss)
-                grad = torch.autograd.grad(loss, self.model.parameters(), allow_unused=True, retain_graph=self.ib_enabled)
+                loss = self.combine_losses(
+                    pred_loss,
+                    ib_losses["pattern_ib_loss"],
+                    meta_ib_loss,
+                    ib_losses.get("eagt_sparse_loss", None),
+                    ib_losses.get("eagt_evidence_loss", None)
+                )
+                grad = torch.autograd.grad(loss, self.model.parameters(), allow_unused=True, retain_graph=self.extra_loss_enabled)
                 grad = list(grad)
                 for idx,(a, model_param) in enumerate(zip(grad, self.model.parameters())):
                     if(a==None):
@@ -474,7 +530,13 @@ class STRep(nn.Module):
                 
                 # 2: use the output to compute the grad
                 pred_loss_q = self._predict_loss(out, y, meta_graph, matrix_spt[i], 'source')
-                loss_q = self.combine_losses(pred_loss_q, ib_losses_q["pattern_ib_loss"], meta_ib_loss)
+                loss_q = self.combine_losses(
+                    pred_loss_q,
+                    ib_losses_q["pattern_ib_loss"],
+                    meta_ib_loss,
+                    ib_losses_q.get("eagt_sparse_loss", None),
+                    ib_losses_q.get("eagt_evidence_loss", None)
+                )
                 if self.ib_enabled:
                     total_pred_loss.append(pred_loss_q.detach().item())
                     total_pattern_ib_loss.append(ib_losses_q["pattern_ib_loss"].detach().item())
@@ -557,6 +619,8 @@ class STRep(nn.Module):
         total_pattern_ib_loss = []
         total_meta_ib_loss = []
         
+        if self.debug_max_batches > 0:
+            end = min(end, start + self.debug_max_batches)
         for idx in range(start,end):
             data_i, A = source_dataset[idx]
             B, N, D, L = data_i.x.shape
@@ -568,11 +632,17 @@ class STRep(nn.Module):
                     A_gnd = torch.cat((A_gnd, A), 0)
             A_gnd = torch.tensor(A_gnd,dtype=torch.float32).to(self.device)
 
-            if self.ib_enabled:
+            if self.extra_loss_enabled:
                 u_tau, meta_ib_loss = self._encode_task_ib(data_i, deterministic=False)
                 out,y,Ax,ib_losses = self.model(data_i, A_gnd, u_tau=u_tau, return_ib_loss=True)
                 pred_loss = loss_fn(out, y)
-                loss = self.combine_losses(pred_loss, ib_losses["pattern_ib_loss"], meta_ib_loss)
+                loss = self.combine_losses(
+                    pred_loss,
+                    ib_losses["pattern_ib_loss"],
+                    meta_ib_loss,
+                    ib_losses.get("eagt_sparse_loss", None),
+                    ib_losses.get("eagt_evidence_loss", None)
+                )
                 total_pred_loss.append(pred_loss.detach().item())
                 total_pattern_ib_loss.append(ib_losses["pattern_ib_loss"].detach().item())
                 total_meta_ib_loss.append(meta_ib_loss.detach().item())
@@ -610,6 +680,8 @@ class STRep(nn.Module):
         total_mape = []
         
         with torch.no_grad():
+            if self.debug_max_batches > 0:
+                end = min(end, start + self.debug_max_batches)
             for idx in range(start,end):
                 data_i, A = source_dataset[idx]
                 B, N, D, L = data_i.x.shape
@@ -623,7 +695,7 @@ class STRep(nn.Module):
                 # A_gnd = A
                 
                 # activate .eval()
-                if self.ib_enabled:
+                if self.extra_loss_enabled:
                     u_tau, _ = self._encode_task_ib(data_i, deterministic=True)
                     out,y,Ax,ib_losses = self.model(data_i, A_gnd, stage='test', u_tau=u_tau, return_ib_loss=True)
                 else:
