@@ -20,6 +20,7 @@ from TSmodel import *
 from rep_model_final import *
 from EAGT import SourceEvidenceCache
 from EAGT.debug_utils import dump_evidence_csv
+from CRCT.debug_utils import dump_crct_csv, dump_relation_usage
 from pathlib import Path
 import random
 
@@ -65,6 +66,43 @@ parser.add_argument('--debug_max_batches', default=-1, type=int)
 parser.add_argument('--eagt_dump_every', default=0, type=int)
 parser.add_argument('--eagt_dump_top_edges', default=20, type=int)
 parser.add_argument('--eagt_random_evidence', default=0, type=int)
+parser.add_argument('--use_crct', default=0, type=int)
+parser.add_argument('--crct_mode', default='v1', type=str, choices=['v1', 'v2_relation_kd', 'v3_concept'])
+parser.add_argument('--crct_debug', default=0, type=int)
+parser.add_argument('--crct_dry_run', default=0, type=int)
+parser.add_argument('--crct_dump_dir', default='./save/crct_debug', type=str)
+parser.add_argument('--crct_rho', default=0.0, type=float)
+parser.add_argument('--crct_candidate_topk', default=20, type=int)
+parser.add_argument('--crct_candidate_method', default='corr', type=str, choices=['corr', 'lagcorr', 'corr_lagcorr', 'dense'])
+parser.add_argument('--crct_include_self_loop', default=0, type=int)
+parser.add_argument('--crct_sparse_topk', default=20, type=int)
+parser.add_argument('--crct_row_softmax', default=1, type=int)
+parser.add_argument('--crct_node_encoder', default='tcn', type=str, choices=['mlp', 'tcn', 'gru'])
+parser.add_argument('--crct_hidden_dim', default=64, type=int)
+parser.add_argument('--crct_relation_dim', default=64, type=int)
+parser.add_argument('--crct_dropout', default=0.1, type=float)
+parser.add_argument('--crct_num_relations', default=8, type=int)
+parser.add_argument('--crct_attribution', default='sparsemax', type=str, choices=['softmax', 'sparsemax', 'entmax15'])
+parser.add_argument('--crct_temperature', default=1.0, type=float)
+parser.add_argument('--crct_use_unknown', default=1, type=int)
+parser.add_argument('--crct_knownness_method', default='entropy', type=str, choices=['maxlogit', 'entropy', 'mlp'])
+parser.add_argument('--crct_unknown_floor', default=0.0, type=float)
+parser.add_argument('--crct_sparse_loss_weight', default=0.0, type=float)
+parser.add_argument('--crct_sharp_loss_weight', default=0.0, type=float)
+parser.add_argument('--crct_balance_loss_weight', default=0.0, type=float)
+parser.add_argument('--crct_consistency_loss_weight', default=0.0, type=float)
+parser.add_argument('--crct_relation_kd_weight', default=0.0, type=float)
+parser.add_argument('--crct_unknown_reg_weight', default=0.0, type=float)
+parser.add_argument('--crct_dump_every', default=0, type=int)
+parser.add_argument('--crct_dump_top_edges', default=20, type=int)
+parser.add_argument('--enable_checkpoint', default=None, type=int)
+parser.add_argument('--resume', default=None, type=int)
+parser.add_argument('--resume_path', default=None, type=str)
+parser.add_argument('--save_every', default=None, type=int)
+parser.add_argument('--save_best_only', default=None, type=int)
+parser.add_argument('--checkpoint_dir', default=None, type=str)
+parser.add_argument('--checkpoint_prefix', default=None, type=str)
+parser.add_argument('--overwrite_checkpoint', default=None, type=int)
 args = parser.parse_args()
 
 args.new=1
@@ -132,6 +170,48 @@ EAGT_DEFAULTS = {
     "eagt_random_evidence": 0
 }
 
+CRCT_DEFAULTS = {
+    "use_crct": 0,
+    "crct_mode": "v1",
+    "crct_debug": 0,
+    "crct_dry_run": 0,
+    "crct_dump_dir": "./save/crct_debug",
+    "crct_rho": 0.0,
+    "crct_candidate_topk": 20,
+    "crct_candidate_method": "corr",
+    "crct_include_self_loop": 0,
+    "crct_sparse_topk": 20,
+    "crct_row_softmax": 1,
+    "crct_node_encoder": "tcn",
+    "crct_hidden_dim": 64,
+    "crct_relation_dim": 64,
+    "crct_dropout": 0.1,
+    "crct_num_relations": 8,
+    "crct_attribution": "sparsemax",
+    "crct_temperature": 1.0,
+    "crct_use_unknown": 1,
+    "crct_knownness_method": "entropy",
+    "crct_unknown_floor": 0.0,
+    "crct_sparse_loss_weight": 0.0,
+    "crct_sharp_loss_weight": 0.0,
+    "crct_balance_loss_weight": 0.0,
+    "crct_consistency_loss_weight": 0.0,
+    "crct_relation_kd_weight": 0.0,
+    "crct_unknown_reg_weight": 0.0,
+    "crct_dump_every": 0,
+    "crct_dump_top_edges": 20
+}
+
+
+def as_bool(value):
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    if isinstance(value, str):
+        return value.strip().lower() in ["1", "true", "yes", "y", "on"]
+    return bool(value)
+
 
 def get_optional_config(config, key, default):
     ib_cfg = config.get("ib", {}) or {}
@@ -161,6 +241,19 @@ def _arg_was_set(name):
     return any(a == opt or a.startswith(opt + "=") for a in sys.argv[1:])
 
 
+def apply_checkpoint_arg_overrides(ckpt_args, args):
+    for key in [
+        "enable_checkpoint", "resume", "resume_path", "save_every",
+        "save_best_only", "checkpoint_dir", "checkpoint_prefix",
+        "overwrite_checkpoint"
+    ]:
+        if _arg_was_set(key):
+            ckpt_args[key] = getattr(args, key)
+    for key in ["enable_checkpoint", "resume", "save_best_only", "overwrite_checkpoint"]:
+        ckpt_args[key] = bool(ckpt_args[key])
+    return ckpt_args
+
+
 def build_eagt_args(config, args):
     eagt_cfg = config.get("eagt", {}) or {}
     eagt_args = {}
@@ -175,6 +268,58 @@ def build_eagt_args(config, args):
             value = getattr(args, key)
         eagt_args[key] = value
     return eagt_args
+
+
+def build_crct_args(config, args):
+    crct_cfg = config.get("crct", {}) or {}
+    crct_args = {}
+    for key, default in CRCT_DEFAULTS.items():
+        if key in config:
+            value = config[key]
+        elif key in crct_cfg:
+            value = crct_cfg[key]
+        else:
+            value = default
+        if _arg_was_set(key):
+            value = getattr(args, key)
+        crct_args[key] = value
+    for key in [
+        "use_crct", "crct_debug", "crct_dry_run", "crct_include_self_loop",
+        "crct_row_softmax", "crct_use_unknown"
+    ]:
+        crct_args[key] = int(as_bool(crct_args[key]))
+    return crct_args
+
+
+def configure_eagt_checkpoint_defaults(ckpt_args, eagt_args, target_city):
+    if not bool(eagt_args.get("use_eagt", 0)):
+        return ckpt_args
+    if ckpt_args.get("checkpoint_prefix", IB_DEFAULTS["checkpoint_prefix"]) == IB_DEFAULTS["checkpoint_prefix"]:
+        gamma = _fmt_float_for_name(eagt_args.get("eagt_gamma", 0.0))
+        ckpt_args["checkpoint_prefix"] = "tpb_eagt_g{}_top{}_ret{}".format(
+            gamma,
+            int(eagt_args.get("eagt_candidate_topk", 20)),
+            int(eagt_args.get("eagt_retrieval_topk", 8))
+        )
+    if ckpt_args.get("checkpoint_dir", IB_DEFAULTS["checkpoint_dir"]) == IB_DEFAULTS["checkpoint_dir"]:
+        ckpt_args["checkpoint_dir"] = "./save/eagt_runs"
+    return ckpt_args
+
+
+def configure_crct_checkpoint_defaults(ckpt_args, crct_args, target_city):
+    if not as_bool(crct_args.get("use_crct", 0)):
+        return ckpt_args
+    if ckpt_args.get("checkpoint_prefix", IB_DEFAULTS["checkpoint_prefix"]) == IB_DEFAULTS["checkpoint_prefix"]:
+        rho = _fmt_float_for_name(crct_args.get("crct_rho", 0.0))
+        ckpt_args["checkpoint_prefix"] = "tpb_crct_r{}_rel{}_top{}".format(
+            rho,
+            int(crct_args.get("crct_num_relations", 8)),
+            int(crct_args.get("crct_candidate_topk", 20))
+        )
+    if ckpt_args.get("checkpoint_dir", IB_DEFAULTS["checkpoint_dir"]) == IB_DEFAULTS["checkpoint_dir"]:
+        ckpt_args["checkpoint_dir"] = "./save/crct_runs"
+    return ckpt_args
+
 
 
 def _safe_name(x):
@@ -242,6 +387,37 @@ def maybe_dump_eagt(rep_model, source_cache, eagt_args, epoch, batch_id=0, force
     print("[EAGT] evidence csv: {}".format(csv_path))
     return csv_path
 
+
+def maybe_dump_crct(rep_model, crct_args, epoch, batch_id=0, force=False):
+    if not as_bool(crct_args.get("use_crct", 0)) or not as_bool(crct_args.get("crct_debug", 0)):
+        return None
+    dump_every = int(crct_args.get("crct_dump_every", 0))
+    if not force and dump_every <= 0:
+        return None
+    if not force and (batch_id + 1) % dump_every != 0:
+        return None
+    debug_dict = getattr(rep_model.model, "latest_crct_debug", None)
+    if not debug_dict:
+        return None
+    dump_dir = Path(crct_args["crct_dump_dir"])
+    csv_path = dump_dir / "crct_epoch{}_batch{}.csv".format(epoch, batch_id)
+    usage_path = dump_dir / "crct_relation_usage_epoch{}_batch{}.csv".format(epoch, batch_id)
+    dump_crct_csv(debug_dict, csv_path, top_edges=crct_args["crct_dump_top_edges"])
+    dump_relation_usage(debug_dict, usage_path)
+    print("[CRCT] epoch={}, batch={}".format(epoch, batch_id))
+    print("[CRCT] A_original stats: {}".format(debug_dict.get("A_original_stats", {})))
+    print("[CRCT] A_crct stats: {}".format(debug_dict.get("A_crct_stats", {})))
+    print("[CRCT] A_final stats: {}".format(debug_dict.get("A_final_stats", {})))
+    print("[CRCT] knownness stats: {}".format(debug_dict.get("knownness_stats", {})))
+    print("[CRCT] relation_usage: {}".format(
+        [round(float(x), 6) for x in debug_dict.get("relation_usage").detach().cpu().tolist()]
+        if debug_dict.get("relation_usage", None) is not None else []
+    ))
+    print("[CRCT] target candidate edges={}".format(debug_dict.get("target_candidate_count", 0)))
+    print("[CRCT] attribution csv: {}".format(csv_path))
+    print("[CRCT] relation usage csv: {}".format(usage_path))
+    return csv_path
+
 def _fmt_float_for_name(x):
     """Convert float-like values to filename-safe short strings."""
     try:
@@ -301,29 +477,44 @@ def find_latest_checkpoint(checkpoint_dir, checkpoint_prefix, target_city):
         return None
 
     pattern = re.compile(
-        r"^{}_{city}_epoch(\d+)\.pt$".format(
+        r"^{}_{city}_(?:finetune_)?epoch(\d+)(?:_[^.]+)?\.pt$".format(
             re.escape(checkpoint_prefix),
             city=re.escape(target_city)
         )
     )
 
-    candidates = []
+    meta_candidates = []
+    finetune_candidates = []
 
-    for ckpt_path in checkpoint_dir.glob("{}_{}_epoch*.pt".format(checkpoint_prefix, target_city)):
-        match = pattern.match(ckpt_path.name)
-        if match:
-            epoch = int(match.group(1))
-            candidates.append((epoch, ckpt_path))
+    for glob_pat, bucket in [
+        ("{}_{}_epoch*.pt".format(checkpoint_prefix, target_city), meta_candidates),
+        ("{}_{}_finetune_epoch*.pt".format(checkpoint_prefix, target_city), finetune_candidates),
+    ]:
+        for ckpt_path in checkpoint_dir.glob(glob_pat):
+            match = pattern.match(ckpt_path.name)
+            if match:
+                epoch = int(match.group(1))
+                bucket.append((epoch, ckpt_path.stat().st_mtime, ckpt_path))
 
-    if candidates:
-        candidates.sort(key=lambda x: x[0])
-        return candidates[-1][1]
+    if finetune_candidates:
+        finetune_candidates.sort(key=lambda x: (x[0], x[1]))
+        return finetune_candidates[-1][2]
 
-    last_path = checkpoint_dir / "{}_{}_last.pt".format(checkpoint_prefix, target_city)
-    if last_path.exists():
-        return last_path
+    if meta_candidates:
+        meta_candidates.sort(key=lambda x: (x[0], x[1]))
+        return meta_candidates[-1][2]
+
+    last_candidates = list(checkpoint_dir.glob("{}_{}_last*.pt".format(checkpoint_prefix, target_city)))
+    if last_candidates:
+        last_candidates.sort(key=lambda p: p.stat().st_mtime)
+        return last_candidates[-1]
 
     return None
+
+
+def peek_checkpoint_stage(path):
+    ckpt = torch.load(path, map_location="cpu")
+    return ckpt.get("stage", "meta"), int(ckpt.get("epoch", -1)), ckpt.get("best_metric", None)
 
 
 def resolve_resume_path(ib_args, target_city):
@@ -370,6 +561,8 @@ if __name__ == '__main__':
     config = config or {}
     ib_args = build_ib_args(config)
     eagt_args = build_eagt_args(config, args)
+    crct_args = build_crct_args(config, args)
+    ib_args = apply_checkpoint_arg_overrides(ib_args, args)
 
 
     print(config)
@@ -399,10 +592,31 @@ if __name__ == '__main__':
     PatchFSL_cfg.update({'test_dataset': args.test_dataset, 'config': config})
     PatchFSL_cfg.update(ib_args)
     PatchFSL_cfg.update(eagt_args)
+    PatchFSL_cfg.update(crct_args)
     ib_enabled = ib_args["use_pattern_ib"] or ib_args["use_meta_ib"]
-    eagt_enabled = bool(eagt_args["use_eagt"])
+    eagt_enabled = as_bool(eagt_args["use_eagt"])
+    crct_enabled = as_bool(crct_args["use_crct"])
+    ib_args = configure_eagt_checkpoint_defaults(ib_args, eagt_args, args.test_dataset)
+    ib_args = configure_crct_checkpoint_defaults(ib_args, crct_args, args.test_dataset)
+    PatchFSL_cfg.update(ib_args)
+    dry_run_enabled = (
+        (eagt_enabled and as_bool(eagt_args.get("eagt_dry_run", 0))) or
+        (crct_enabled and as_bool(crct_args.get("crct_dry_run", 0)))
+    )
+    checkpoint_enabled = as_bool(ib_args["enable_checkpoint"]) and (ib_enabled or eagt_enabled or crct_enabled) and not dry_run_enabled
     if ib_enabled:
         print("INFO: IB enabled. Pattern IB={}, Meta IB={}".format(ib_args["use_pattern_ib"], ib_args["use_meta_ib"]))
+    if checkpoint_enabled:
+        print("INFO: checkpoint_prefix = {}".format(ib_args["checkpoint_prefix"]))
+        print("INFO: checkpoint_dir = {}".format(ib_args["checkpoint_dir"]))
+    if crct_enabled:
+        print("[CRCT] use_crct={}, mode={}, rho={}, num_relations={}, relation_dim={}, attribution={}".format(
+            crct_args["use_crct"], crct_args["crct_mode"], crct_args["crct_rho"],
+            crct_args["crct_num_relations"], crct_args["crct_relation_dim"],
+            crct_args["crct_attribution"]
+        ))
+        if eagt_enabled:
+            print("[CRCT] Both use_eagt and use_crct are enabled. CRCT v1 skips EAGT inside PatchFSL.")
 
     ## dataset
     source_dataset = traffic_dataset(data_args, task_args['maml'], list(source_city_list), "source_train", test_data=args.test_dataset)
@@ -412,7 +626,7 @@ if __name__ == '__main__':
         print("source dataset has {}. X : {}, y : {}".format(data,source_dataset.x_list[data].shape,source_dataset.y_list[data].shape))
 
     source_evidence_cache = None
-    if eagt_enabled:
+    if eagt_enabled and not crct_enabled:
         source_evidence_cache, eagt_cache_path = build_or_load_eagt_cache(
             source_dataset,
             source_city_list,
@@ -424,35 +638,41 @@ if __name__ == '__main__':
 
     finetune_dataset = traffic_dataset(data_args, task_args['maml'], list(source_city_list), 'target_maml', test_data=args.test_dataset)
     test_dataset = traffic_dataset(data_args, task_args['maml'], list(source_city_list), 'test', test_data=args.test_dataset)
-    print(data_args, task_args, model_args, PatchFSL_cfg if (ib_enabled or eagt_enabled) else PatchFSL_cfg_print, args.STmodel)
+    print(data_args, task_args, model_args, PatchFSL_cfg if (ib_enabled or eagt_enabled or crct_enabled) else PatchFSL_cfg_print, args.STmodel)
     rep_model = STRep(data_args, task_args, model_args, PatchFSL_cfg, args.STmodel)
     best_loss = 9999999999999.0
     best_model = None
     start_epoch = 0
     best_metric = None
+    skip_meta_train = False
+    finetune_resume_path = None
     if ib_args["resume"]:
-        if not ib_enabled:
-            raise ValueError("resume=True is only supported for IB checkpoints; enable use_pattern_ib or use_meta_ib.")
+        if not checkpoint_enabled:
+            raise ValueError("resume=True requires use_pattern_ib, use_meta_ib, use_eagt, or use_crct with enable_checkpoint=True.")
 
         resume_path = resolve_resume_path(ib_args, args.test_dataset)
+        resume_stage, resume_epoch, best_metric = peek_checkpoint_stage(resume_path)
+        if resume_stage == "finetune":
+            skip_meta_train = True
+            finetune_resume_path = resume_path
+            print("INFO: Found finetune checkpoint at epoch {}. Skip meta-training and resume finetuning.".format(resume_epoch))
+        else:
+            start_epoch, best_metric = load_checkpoint(
+                resume_path,
+                rep_model,
+                rep_model.meta_optim
+            )
 
-        start_epoch, best_metric = load_checkpoint(
-            resume_path,
-            rep_model,
-            rep_model.meta_optim
-        )
+            rep_model.current_epoch = start_epoch
 
-        rep_model.current_epoch = start_epoch
-        start_epoch = start_epoch + 1
-
-        print("INFO: Resumed from checkpoint: {}".format(resume_path))
-        print("INFO: Continue training from epoch {}".format(start_epoch))
+            print("INFO: Resumed from checkpoint: {}".format(resume_path))
+            print("INFO: Continue meta-training from epoch {}".format(start_epoch))
     if best_metric is None:
         best_metric = 9999999999999.0
     ## train on big dataset
     rep_tasknum = task_args['maml']['task_num']
 
-    for i in range(start_epoch, task_args['maml']['train_epochs']):
+    for i in range(start_epoch, task_args['maml']['train_epochs']) if not skip_meta_train else []:
         length = source_dataset.__len__()
         # length=40
         print('----------------------')
@@ -489,34 +709,59 @@ if __name__ == '__main__':
                 rep_model.last_ib_log.get("meta_ib_loss", 0.0),
                 rep_model.last_ib_log.get("total_loss", 0.0)
             ))
-            if ib_args["enable_checkpoint"]:
-                checkpoint_dir = Path(ib_args["checkpoint_dir"])
-                checkpoint_prefix = ib_args["checkpoint_prefix"]
-                target_city = args.test_dataset
-                metric = float(mae_loss)
-                is_best = metric < best_metric
-                if is_best:
-                    best_metric = metric
-                    save_checkpoint(
-                        checkpoint_dir / '{}_{}_best.pt'.format(checkpoint_prefix, target_city),
-                        rep_model.checkpoint_state(i, rep_model.meta_optim, config, best_metric),
-                        overwrite=ib_args["overwrite_checkpoint"]
-                    )
-                if (not ib_args["save_best_only"]) and ((i + 1) % max(1, int(ib_args["save_every"])) == 0):
-                    state = rep_model.checkpoint_state(i, rep_model.meta_optim, config, best_metric)
-                    save_checkpoint(checkpoint_dir / '{}_{}_last.pt'.format(checkpoint_prefix, target_city), state, overwrite=ib_args["overwrite_checkpoint"])
-                    save_checkpoint(checkpoint_dir / '{}_{}_epoch{}.pt'.format(checkpoint_prefix, target_city, i), state, overwrite=ib_args["overwrite_checkpoint"])
+        if crct_enabled:
+            print("CRCT loss sparse={:.5f}, sharp={:.5f}, balance={:.5f}, kd={:.5f}, unknown={:.5f}, total={:.5f}".format(
+                rep_model.last_crct_log.get("crct_sparse_loss", 0.0),
+                rep_model.last_crct_log.get("crct_sharp_loss", 0.0),
+                rep_model.last_crct_log.get("crct_balance_loss", 0.0),
+                rep_model.last_crct_log.get("crct_relation_kd_loss", 0.0),
+                rep_model.last_crct_log.get("crct_unknown_reg_loss", 0.0),
+                rep_model.last_crct_log.get("total_loss", 0.0)
+            ))
+        if checkpoint_enabled:
+            checkpoint_dir = Path(ib_args["checkpoint_dir"])
+            checkpoint_prefix = ib_args["checkpoint_prefix"]
+            target_city = args.test_dataset
+            metric = float(mae_loss)
+            is_best = metric < best_metric
+            if is_best:
+                best_metric = metric
+                save_checkpoint(
+                    checkpoint_dir / '{}_{}_best.pt'.format(checkpoint_prefix, target_city),
+                    rep_model.checkpoint_state(i, rep_model.meta_optim, config, best_metric, stage="meta"),
+                    overwrite=ib_args["overwrite_checkpoint"]
+                )
+            if (not ib_args["save_best_only"]) and ((i + 1) % max(1, int(ib_args["save_every"])) == 0):
+                state = rep_model.checkpoint_state(i, rep_model.meta_optim, config, best_metric, stage="meta")
+                save_checkpoint(checkpoint_dir / '{}_{}_last.pt'.format(checkpoint_prefix, target_city), state, overwrite=ib_args["overwrite_checkpoint"])
+                save_checkpoint(checkpoint_dir / '{}_{}_epoch{}.pt'.format(checkpoint_prefix, target_city, i), state, overwrite=ib_args["overwrite_checkpoint"])
         print("This epoch cost {:.3}s.".format(time.time() - time_1))
-        if eagt_enabled:
+        if eagt_enabled and not crct_enabled:
             maybe_dump_eagt(
                 rep_model,
                 source_evidence_cache,
                 eagt_args,
                 epoch=i,
                 batch_id=0,
-                force=bool(eagt_args["eagt_dry_run"])
+                force=as_bool(eagt_args["eagt_dry_run"])
             )
-            if bool(eagt_args["eagt_dry_run"]):
+            if as_bool(eagt_args["eagt_dry_run"]):
                 print("[EAGT] dry_run finished.")
                 sys.exit(0)
-    rep_model.finetuning(finetune_dataset, test_dataset, task_args['maml']['finetune_epochs'])
+        if crct_enabled:
+            maybe_dump_crct(
+                rep_model,
+                crct_args,
+                epoch=i,
+                batch_id=0,
+                force=as_bool(crct_args["crct_dry_run"])
+            )
+            if as_bool(crct_args["crct_dry_run"]):
+                print("[CRCT] dry_run finished.")
+                sys.exit(0)
+    rep_model.finetuning(
+        finetune_dataset,
+        test_dataset,
+        task_args['maml']['finetune_epochs'],
+        resume_path=finetune_resume_path
+    )

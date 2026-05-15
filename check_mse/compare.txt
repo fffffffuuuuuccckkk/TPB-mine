@@ -49,7 +49,22 @@ Average MAE: 2.24524
 Average MAPE: 0.05356
 
 
+pems_eagt:Average Unnormed MSE: 18.77503
+Average RMSE: 4.12635
+Average MAE: 2.04138
+Average MAPE: 0.04555
+
 eagt_edge_v1_gamma0.1_top20_ret8:Average Unnormed MSE: 18.10878
 Average RMSE: 4.12502
 Average MAE: 2.04138
 Average MAPE: 0.04389
+
+eagt_random_evidence_gamma0.1:Average Unnormed MSE: 19.48683
+Average RMSE: 4.19539
+Average MAE: 2.10282
+Average MAPE: 0.04530
+
+pems_crct:Average Unnormed MSE: 19.33292
+Average RMSE: 4.18558
+Average MAE: 2.16085
+Average MAPE: 0.05016

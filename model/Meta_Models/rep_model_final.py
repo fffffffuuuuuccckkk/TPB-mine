@@ -14,10 +14,13 @@ from torch_geometric.utils import remove_self_loops, add_self_loops, softmax
 from torch.nn.utils import weight_norm
 import math
 import tqdm
+import copy
 
 from meta_patch import *
 from reconstruction import *
 from EAGT import EAGTGraphConstructor, SourceEvidenceCache
+from CRCT import CRCTGraphConstructor
+from CRCT.sparse_ops import as_bool
 import sys
 from pathlib import Path
 import os
@@ -121,17 +124,23 @@ class PatchFSL(nn.Module):
         super(PatchFSL,self).__init__()
 
         self.data_args, self.model_args, self.task_args, self.PatchFSL_cfg = data_args, model_args, task_args, PatchFSL_cfg
-        self.use_pattern_ib = bool(PatchFSL_cfg.get('use_pattern_ib', False))
-        self.use_meta_ib = bool(PatchFSL_cfg.get('use_meta_ib', False))
-        self.meta_ib_use_label = bool(PatchFSL_cfg.get('meta_ib_use_label', True))
-        self.meta_ib_modulate_pattern_query = bool(PatchFSL_cfg.get('meta_ib_modulate_pattern_query', True))
+        self.use_pattern_ib = as_bool(PatchFSL_cfg.get('use_pattern_ib', False))
+        self.use_meta_ib = as_bool(PatchFSL_cfg.get('use_meta_ib', False))
+        self.meta_ib_use_label = as_bool(PatchFSL_cfg.get('meta_ib_use_label', True))
+        self.meta_ib_modulate_pattern_query = as_bool(PatchFSL_cfg.get('meta_ib_modulate_pattern_query', True))
         self.meta_ib_dim = int(PatchFSL_cfg.get('meta_ib_dim', 32))
-        self.use_eagt = bool(PatchFSL_cfg.get('use_eagt', False))
-        self.eagt_debug = bool(PatchFSL_cfg.get('eagt_debug', False))
+        self.use_eagt = as_bool(PatchFSL_cfg.get('use_eagt', False))
+        self.eagt_debug = as_bool(PatchFSL_cfg.get('eagt_debug', False))
         self.eagt_sparse_loss_weight = float(PatchFSL_cfg.get('eagt_sparse_loss_weight', 0.0))
         self.eagt_evidence_loss_weight = float(PatchFSL_cfg.get('eagt_evidence_loss_weight', 0.0))
+        self.use_crct = as_bool(PatchFSL_cfg.get('use_crct', False))
+        self.crct_debug = as_bool(PatchFSL_cfg.get('crct_debug', False))
+        self.latest_crct_debug = None
+        self.latest_crct_aux_loss = {}
         self.latest_eagt_debug = None
         self._printed_online_eagt = False
+        if self.use_eagt and self.use_crct:
+            print("[CRCT] Both use_eagt and use_crct are enabled. In v1, CRCT is applied after original TPB graph and EAGT is skipped.")
         # Pattern_Encoder
         
         pattern = torch.load(PatchFSL_cfg['base_dir'] / 'pattern/{}/{}_{}_cl.pt'.format(PatchFSL_cfg["data_list"],PatchFSL_cfg["sim"],PatchFSL_cfg["K"]))
@@ -158,6 +167,10 @@ class PatchFSL(nn.Module):
             )
         else:
             self.task_ib_encoder = None
+        if self.use_crct:
+            self.crct_graph_constructor = CRCTGraphConstructor(PatchFSL_cfg)
+        else:
+            self.crct_graph_constructor = None
         if self.use_eagt:
             self.source_evidence_cache = PatchFSL_cfg.get('source_evidence_cache', None)
             if self.source_evidence_cache is not None:
@@ -222,6 +235,14 @@ class PatchFSL(nn.Module):
         zero = torch.zeros((), device=x.device, dtype=x.dtype)
         ib_losses = {"pattern_ib_loss": zero, "meta_ib_loss": zero}
         ib_losses.update({"eagt_sparse_loss": zero, "eagt_evidence_loss": zero})
+        ib_losses.update({
+            "crct_sparse_loss": zero,
+            "crct_sharp_loss": zero,
+            "crct_balance_loss": zero,
+            "crct_consistency_loss": zero,
+            "crct_relation_kd_loss": zero,
+            "crct_unknown_reg_loss": zero,
+        })
         # remember that the input of TSFormer is [B, N, 2, L]
         x = x.permute(0,1,3,2)
         # shape : [B, N, 12, 1]
@@ -258,7 +279,21 @@ class PatchFSL(nn.Module):
             
             
             A_patch = Reconsmodel(pattern)
-            if self.use_eagt:
+            A_original = A_patch
+            if self.use_crct:
+                A_patch, crct_aux_loss, crct_debug = self.crct_graph_constructor(
+                    eagt_history,
+                    A_original=A_original,
+                    return_debug=self.crct_debug
+                )
+                for key, value in crct_aux_loss.items():
+                    ib_losses[key] = value
+                self.latest_crct_aux_loss = {
+                    key: value.detach() for key, value in crct_aux_loss.items()
+                }
+                self.latest_crct_debug = crct_debug if self.crct_debug else None
+                self.latest_eagt_debug = None
+            elif self.use_eagt:
                 source_cache = self.source_evidence_cache
                 if source_cache is None:
                     if not self._printed_online_eagt:
@@ -277,6 +312,10 @@ class PatchFSL(nn.Module):
                 ib_losses["eagt_sparse_loss"] = eagt_aux_loss["eagt_sparse_loss"]
                 ib_losses["eagt_evidence_loss"] = eagt_aux_loss["eagt_evidence_loss"]
                 self.latest_eagt_debug = eagt_debug if self.eagt_debug else None
+                self.latest_crct_debug = None
+            else:
+                self.latest_eagt_debug = None
+                self.latest_crct_debug = None
         
         A_list = [A_patch, A_patch.permute(0,2,1)]
         
@@ -320,17 +359,25 @@ class STRep(nn.Module):
         self.model_name = model
         self.device = PatchFSL_cfg['device']
         self.current_epoch = 0
-        self.use_pattern_ib = bool(PatchFSL_cfg.get('use_pattern_ib', False))
-        self.use_meta_ib = bool(PatchFSL_cfg.get('use_meta_ib', False))
+        self.use_pattern_ib = as_bool(PatchFSL_cfg.get('use_pattern_ib', False))
+        self.use_meta_ib = as_bool(PatchFSL_cfg.get('use_meta_ib', False))
         self.pattern_ib_weight = float(PatchFSL_cfg.get('pattern_ib_weight', 0.0))
         self.meta_ib_weight = float(PatchFSL_cfg.get('meta_ib_weight', 0.0))
-        self.use_eagt = bool(PatchFSL_cfg.get('use_eagt', False))
+        self.use_eagt = as_bool(PatchFSL_cfg.get('use_eagt', False))
         self.eagt_sparse_loss_weight = float(PatchFSL_cfg.get('eagt_sparse_loss_weight', 0.0))
         self.eagt_evidence_loss_weight = float(PatchFSL_cfg.get('eagt_evidence_loss_weight', 0.0))
+        self.use_crct = as_bool(PatchFSL_cfg.get('use_crct', False))
+        self.crct_sparse_loss_weight = float(PatchFSL_cfg.get('crct_sparse_loss_weight', 0.0))
+        self.crct_sharp_loss_weight = float(PatchFSL_cfg.get('crct_sharp_loss_weight', 0.0))
+        self.crct_balance_loss_weight = float(PatchFSL_cfg.get('crct_balance_loss_weight', 0.0))
+        self.crct_consistency_loss_weight = float(PatchFSL_cfg.get('crct_consistency_loss_weight', 0.0))
+        self.crct_relation_kd_loss_weight = float(PatchFSL_cfg.get('crct_relation_kd_weight', PatchFSL_cfg.get('crct_relation_kd_loss_weight', 0.0)))
+        self.crct_unknown_reg_loss_weight = float(PatchFSL_cfg.get('crct_unknown_reg_weight', PatchFSL_cfg.get('crct_unknown_reg_loss_weight', 0.0)))
         self.debug_max_batches = int(PatchFSL_cfg.get('debug_max_batches', -1))
         self.ib_enabled = self.use_pattern_ib or self.use_meta_ib
-        self.extra_loss_enabled = self.ib_enabled or self.use_eagt
+        self.extra_loss_enabled = self.ib_enabled or self.use_eagt or self.use_crct
         self.last_ib_log = {}
+        self.last_crct_log = {}
 
         self.model = PatchFSL(data_args, model_args, task_args,PatchFSL_cfg).to(self.device)
         for name, params in self.model.named_parameters():
@@ -347,7 +394,10 @@ class STRep(nn.Module):
         return torch.zeros((), device=self.device)
 
     def combine_losses(self, pred_loss, pattern_ib_loss=None, meta_ib_loss=None,
-                       eagt_sparse_loss=None, eagt_evidence_loss=None):
+                       eagt_sparse_loss=None, eagt_evidence_loss=None,
+                       crct_sparse_loss=None, crct_sharp_loss=None,
+                       crct_balance_loss=None, crct_consistency_loss=None,
+                       crct_relation_kd_loss=None, crct_unknown_reg_loss=None):
         total_loss = pred_loss
         if self.use_pattern_ib and pattern_ib_loss is not None:
             total_loss = total_loss + self.pattern_ib_weight * pattern_ib_loss
@@ -357,7 +407,43 @@ class STRep(nn.Module):
             total_loss = total_loss + self.eagt_sparse_loss_weight * eagt_sparse_loss
         if self.use_eagt and eagt_evidence_loss is not None:
             total_loss = total_loss + self.eagt_evidence_loss_weight * eagt_evidence_loss
+        if self.use_crct:
+            if crct_sparse_loss is not None:
+                total_loss = total_loss + self.crct_sparse_loss_weight * crct_sparse_loss
+            if crct_sharp_loss is not None:
+                total_loss = total_loss + self.crct_sharp_loss_weight * crct_sharp_loss
+            if crct_balance_loss is not None:
+                total_loss = total_loss + self.crct_balance_loss_weight * crct_balance_loss
+            if crct_consistency_loss is not None:
+                total_loss = total_loss + self.crct_consistency_loss_weight * crct_consistency_loss
+            if crct_relation_kd_loss is not None:
+                total_loss = total_loss + self.crct_relation_kd_loss_weight * crct_relation_kd_loss
+            if crct_unknown_reg_loss is not None:
+                total_loss = total_loss + self.crct_unknown_reg_loss_weight * crct_unknown_reg_loss
         return total_loss
+
+    def _crct_loss_args(self, ib_losses):
+        return [
+            ib_losses.get("crct_sparse_loss", None),
+            ib_losses.get("crct_sharp_loss", None),
+            ib_losses.get("crct_balance_loss", None),
+            ib_losses.get("crct_consistency_loss", None),
+            ib_losses.get("crct_relation_kd_loss", None),
+            ib_losses.get("crct_unknown_reg_loss", None),
+        ]
+
+    def _append_crct_logs(self, store, ib_losses, total_loss):
+        if not self.use_crct:
+            return
+        for key in [
+            "crct_sparse_loss", "crct_sharp_loss", "crct_balance_loss",
+            "crct_consistency_loss", "crct_relation_kd_loss",
+            "crct_unknown_reg_loss",
+        ]:
+            value = ib_losses.get(key, None)
+            if value is not None:
+                store.setdefault(key, []).append(value.detach().item())
+        store.setdefault("total_loss", []).append(total_loss.detach().item())
 
     def _predict_loss(self, out, y, meta_graph, matrix, stage='source'):
         if self.model_name in ['v_GRU', 'r_GRU', 'v_STGCN']:
@@ -378,8 +464,9 @@ class STRep(nn.Module):
             return None, self.zero_loss()
         return self.model.encode_task_ib(data_i, deterministic=deterministic)
 
-    def checkpoint_state(self, epoch, optimizer=None, config=None, best_metric=None):
+    def checkpoint_state(self, epoch, optimizer=None, config=None, best_metric=None, stage="meta"):
         return {
+            "stage": stage,
             "epoch": epoch,
             "model_state_dict": self.state_dict(),
             "optimizer_state_dict": optimizer.state_dict() if optimizer is not None else None,
@@ -387,7 +474,8 @@ class STRep(nn.Module):
             "best_metric": best_metric,
             "use_pattern_ib": self.use_pattern_ib,
             "use_meta_ib": self.use_meta_ib,
-            "use_eagt": self.use_eagt
+            "use_eagt": self.use_eagt,
+            "use_crct": self.use_crct
         }
     
     def get_per_step_loss_importance_vector(self):
@@ -455,7 +543,9 @@ class STRep(nn.Module):
         total_pred_loss = []
         total_pattern_ib_loss = []
         total_meta_ib_loss = []
+        total_crct_loss = {}
         total_total_loss = []
+        total_crct_loss = {}
         
         # taskwise loss, precision
         task_losses = []
@@ -494,7 +584,8 @@ class STRep(nn.Module):
                     ib_losses["pattern_ib_loss"],
                     meta_ib_loss,
                     ib_losses.get("eagt_sparse_loss", None),
-                    ib_losses.get("eagt_evidence_loss", None)
+                    ib_losses.get("eagt_evidence_loss", None),
+                    *self._crct_loss_args(ib_losses)
                 )
                 grad = torch.autograd.grad(loss, self.model.parameters(), allow_unused=True, retain_graph=self.extra_loss_enabled)
                 grad = list(grad)
@@ -535,13 +626,15 @@ class STRep(nn.Module):
                     ib_losses_q["pattern_ib_loss"],
                     meta_ib_loss,
                     ib_losses_q.get("eagt_sparse_loss", None),
-                    ib_losses_q.get("eagt_evidence_loss", None)
+                    ib_losses_q.get("eagt_evidence_loss", None),
+                    *self._crct_loss_args(ib_losses_q)
                 )
                 if self.ib_enabled:
                     total_pred_loss.append(pred_loss_q.detach().item())
                     total_pattern_ib_loss.append(ib_losses_q["pattern_ib_loss"].detach().item())
                     total_meta_ib_loss.append(meta_ib_loss.detach().item())
                     total_total_loss.append(loss_q.detach().item())
+                self._append_crct_logs(total_crct_loss, ib_losses_q, loss_q)
                 
                 # grad_q = torch.autograd.grad(loss, self.model.parameters(), allow_unused=True, retain_graph = True)
                 # grad_q = list(grad_q)
@@ -601,6 +694,11 @@ class STRep(nn.Module):
                 "meta_ib_loss": float(np.mean(total_meta_ib_loss)) if len(total_meta_ib_loss) > 0 else 0.0,
                 "total_loss": float(np.mean(total_total_loss)) if len(total_total_loss) > 0 else 0.0
             }
+        if self.use_crct:
+            self.last_crct_log = {
+                key: float(np.mean(value)) if len(value) > 0 else 0.0
+                for key, value in total_crct_loss.items()
+            }
 
         # return MSELoss, mse, rmse, mae, mape
         return model_loss.detach().cpu().numpy(),np.mean(total_mse), np.mean(total_rmse), np.mean(total_mae),np.mean(total_mape)
@@ -618,6 +716,7 @@ class STRep(nn.Module):
         total_pred_loss = []
         total_pattern_ib_loss = []
         total_meta_ib_loss = []
+        total_crct_loss = {}
         
         if self.debug_max_batches > 0:
             end = min(end, start + self.debug_max_batches)
@@ -641,11 +740,13 @@ class STRep(nn.Module):
                     ib_losses["pattern_ib_loss"],
                     meta_ib_loss,
                     ib_losses.get("eagt_sparse_loss", None),
-                    ib_losses.get("eagt_evidence_loss", None)
+                    ib_losses.get("eagt_evidence_loss", None),
+                    *self._crct_loss_args(ib_losses)
                 )
                 total_pred_loss.append(pred_loss.detach().item())
                 total_pattern_ib_loss.append(ib_losses["pattern_ib_loss"].detach().item())
                 total_meta_ib_loss.append(meta_ib_loss.detach().item())
+                self._append_crct_logs(total_crct_loss, ib_losses, loss)
             else:
                 out,y,Ax = self.model(data_i, A_gnd)
                 loss = loss_fn(out, y)
@@ -669,6 +770,11 @@ class STRep(nn.Module):
                 "pattern_ib_loss": float(np.mean(total_pattern_ib_loss)) if len(total_pattern_ib_loss) > 0 else 0.0,
                 "meta_ib_loss": float(np.mean(total_meta_ib_loss)) if len(total_meta_ib_loss) > 0 else 0.0,
                 "total_loss": float(np.mean(total_loss)) if len(total_loss) > 0 else 0.0
+            }
+        if self.use_crct:
+            self.last_crct_log = {
+                key: float(np.mean(value)) if len(value) > 0 else 0.0
+                for key, value in total_crct_loss.items()
             }
         return total_mse,total_rmse, total_mae, total_mape, total_loss
 
@@ -710,7 +816,7 @@ class STRep(nn.Module):
         return total_mse,total_rmse, total_mae, total_mape, total_loss
 
 
-    def finetuning(self, finetune_dataset, test_dataset, target_epochs):
+    def finetuning(self, finetune_dataset, test_dataset, target_epochs, resume_path=None):
         """
         finetunning stage in MAML
         """
@@ -719,14 +825,14 @@ class STRep(nn.Module):
             return
         curr_time = datetime.datetime.now().strftime(
     "%Y%m%d-%H%M%S")
-        if self.ib_enabled:
+        checkpoint_enabled = as_bool(self.PatchFSL_cfg.get('enable_checkpoint', True)) and (self.ib_enabled or self.use_eagt or self.use_crct)
+        if checkpoint_enabled:
             model_path = Path(self.PatchFSL_cfg.get('checkpoint_dir', self.PatchFSL_cfg.get('ib_save_dir', './save/ib_runs')))
             checkpoint_prefix = self.PatchFSL_cfg.get('checkpoint_prefix', 'tpb_ib')
             target_city = self.PatchFSL_cfg.get('test_dataset', 'target')
             save_every = max(1, int(self.PatchFSL_cfg.get('save_every', 1)))
             save_best_only = bool(self.PatchFSL_cfg.get('save_best_only', False))
             overwrite_checkpoint = bool(self.PatchFSL_cfg.get('overwrite_checkpoint', False))
-            enable_checkpoint = bool(self.PatchFSL_cfg.get('enable_checkpoint', True))
         else:
             model_path = Path('./save/meta_model/{}/{}/'.format(self.PatchFSL_cfg['data_list'],curr_time))
         
@@ -737,9 +843,16 @@ class STRep(nn.Module):
 
         best_loss = 9999999999999.0
         best_model = None
+        start_epoch = 0
+        if resume_path:
+            start_epoch, loaded_best = load_checkpoint(resume_path, self, optimizer)
+            if loaded_best is not None:
+                best_loss = loaded_best
+            best_model = copy.deepcopy(self.model)
+            print("INFO: Finetune resume loaded: {}, start_epoch={}".format(resume_path, start_epoch))
         print("[INFO] Enter finetune phase")
 
-        for i in range(target_epochs):
+        for i in range(start_epoch, target_epochs):
             length = finetune_dataset.__len__()
             # length=40
             print('----------------------')
@@ -755,28 +868,39 @@ class STRep(nn.Module):
                     self.last_ib_log.get("meta_ib_loss", 0.0),
                     self.last_ib_log.get("total_loss", 0.0)
                 ))
+            if self.use_crct:
+                print("CRCT loss sparse={:.5f}, sharp={:.5f}, balance={:.5f}, kd={:.5f}, unknown={:.5f}, total={:.5f}".format(
+                    self.last_crct_log.get("crct_sparse_loss", 0.0),
+                    self.last_crct_log.get("crct_sharp_loss", 0.0),
+                    self.last_crct_log.get("crct_balance_loss", 0.0),
+                    self.last_crct_log.get("crct_relation_kd_loss", 0.0),
+                    self.last_crct_log.get("crct_unknown_reg_loss", 0.0),
+                    self.last_crct_log.get("total_loss", 0.0)
+                ))
             
             mae_loss = np.mean(total_mae)
             if(mae_loss < best_loss):
                 best_model = copy.deepcopy(self.model)
                 best_loss = mae_loss
-                if self.ib_enabled and enable_checkpoint:
+                if checkpoint_enabled:
                     save_checkpoint(
                         model_path / '{}_{}_best.pt'.format(checkpoint_prefix, target_city),
-                        self.checkpoint_state(i, optimizer, self.PatchFSL_cfg.get('config', None), best_loss),
+                        self.checkpoint_state(i, optimizer, self.PatchFSL_cfg.get('config', None), best_loss, stage="finetune"),
                         overwrite=overwrite_checkpoint
                     )
                 else:
                     torch.save(self.model.state_dict(), model_path / 'finetuned_bestmodel.pt')
                 print('Best model. Saved.')
-            if self.ib_enabled and enable_checkpoint and (not save_best_only) and ((i + 1) % save_every == 0):
-                state = self.checkpoint_state(i, optimizer, self.PatchFSL_cfg.get('config', None), best_loss)
+            if checkpoint_enabled and (not save_best_only) and ((i + 1) % save_every == 0):
+                state = self.checkpoint_state(i, optimizer, self.PatchFSL_cfg.get('config', None), best_loss, stage="finetune")
                 save_checkpoint(model_path / '{}_{}_last.pt'.format(checkpoint_prefix, target_city), state, overwrite=overwrite_checkpoint)
-                save_checkpoint(model_path / '{}_{}_epoch{}.pt'.format(checkpoint_prefix, target_city, i), state, overwrite=overwrite_checkpoint)
+                save_checkpoint(model_path / '{}_{}_finetune_epoch{}.pt'.format(checkpoint_prefix, target_city, i), state, overwrite=overwrite_checkpoint)
             print('this epoch costs {:.5}s'.format(time.time()-time_1))
 
         print("[INFO] Enter test phase")
         length = test_dataset.__len__()
+        if best_model is None:
+            best_model = copy.deepcopy(self.model)
         self.model = copy.deepcopy(best_model)
         
         total_mse_horizon,total_rmse_horizon, total_mae_horizon, total_mape_horizon, total_loss = self.test_batch(0,length, test_dataset,"test")

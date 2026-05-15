@@ -1,0 +1,107 @@
+data:
+  data_keys: ['metr-la', 'pems-bay', 'shenzhen', 'chengdu_m']
+  metr-la:
+    dataset_path: data/metr-la/dataset_expand.npy
+    adjacency_matrix_path: data/metr-la/matrix.npy
+    time_step: 34272
+    node_num: 207
+    speed_mean: 58.465786
+    speed_std: 12.905341
+  
+  pems-bay:
+    dataset_path: data/pems-bay/dataset_expand.npy
+    adjacency_matrix_path: data/pems-bay/matrix.npy
+    time_step: 52116
+    node_num: 325
+    speed_mean: 62.621582859
+    speed_std: 9.58811369696
+
+  chengdu_m:
+    dataset_path: data/chengdu_m/dataset_expand.npy
+    adjacency_matrix_path: data/chengdu_m/matrix.npy
+    time_step: 17280
+    node_num: 524
+    speed_mean: 29.0982979559
+    speed_std: 9.75304346669
+  
+  shenzhen:
+    dataset_path: data/shenzhen/dataset_expand.npy
+    adjacency_matrix_path: data/shenzhen/matrix.npy
+    time_step: 17280
+    node_num: 627
+    speed_mean: 30.5735608506
+    speed_std: 11.0922606598
+  
+task:
+  mae:
+    patch_num: 12 
+    his_num: 288
+    pred_num: 0
+    batch_size: 4  # [B, N, 288, 2]
+    train_epochs: 1000
+    lr : 0.0001
+    add_target : True
+  maml:
+    his_num: 288
+    pred_num: 12
+    batch_size: 16
+    task_num: 2
+    add_target : True
+    train_epochs : 25
+    finetune_epochs : 400
+    test_dataset : 'pems-bay'
+
+
+model:
+  mae: 
+    spectral: False
+    patch_size: 12
+    in_channel: 1 
+    out_channel: 128
+    dropout: 0.1
+    window_size: 288
+    mask_size: 24
+    mask_ratio: 0.75
+    L: 4
+    
+
+  STnet:
+    update_step : 2
+    K: 10
+    update_lr : 0.0005
+    meta_lr : 0.001
+    data_list : 'chengdu_shenzhen_metr'
+# ===== EAGT ablation: gamma=0 debug/dry-run only =====
+use_eagt: 1
+eagt_mode: "edge_v1"
+eagt_debug: 1
+eagt_dry_run: 1
+eagt_dump_dir: "./save/eagt_debug"
+eagt_candidate_topk: 20
+eagt_candidate_method: "corr"
+eagt_include_self_loop: 0
+eagt_cache_dir: "./save/eagt_cache"
+eagt_rebuild_cache: 0
+eagt_source_topk_per_node: 20
+eagt_max_source_edges: 200000
+eagt_retrieval_topk: 8
+eagt_chunk_size: 4096
+eagt_gamma: 0.0
+eagt_row_softmax: 1
+eagt_sparse_topk: 20
+eagt_sparse_loss_weight: 0.0
+eagt_evidence_loss_weight: 0.0
+debug_max_batches: 1
+eagt_dump_every: 1
+eagt_dump_top_edges: 20
+eagt_random_evidence: 0
+
+# ===== EAGT checkpoint/resume =====
+enable_checkpoint: False
+resume: False
+resume_path: ""
+save_every: 1
+save_best_only: False
+checkpoint_dir: "./save/eagt_runs"
+checkpoint_prefix: "tpb_eagt_gamma0_debug_only"
+overwrite_checkpoint: False

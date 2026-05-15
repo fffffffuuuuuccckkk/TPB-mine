@@ -2,18 +2,18 @@ import re
 import numpy as np
 
 log_text = """
-Horizon 0 : Unnormed MSE : 3.82596, RMSE : 1.94828, MAE : 1.16609, MAPE: 0.02346
-Horizon 1 : Unnormed MSE : 7.09088, RMSE : 2.64586, MAE : 1.47495, MAPE: 0.03094
-Horizon 2 : Unnormed MSE : 10.54275, RMSE : 3.21984, MAE : 1.71806, MAPE: 0.03744
-Horizon 3 : Unnormed MSE : 14.08219, RMSE : 3.71677, MAE : 1.93527, MAPE: 0.04333
-Horizon 4 : Unnormed MSE : 17.62823, RMSE : 4.15379, MAE : 2.10934, MAPE: 0.04856
-Horizon 5 : Unnormed MSE : 20.99080, RMSE : 4.53035, MAE : 2.25904, MAPE: 0.05317
-Horizon 6 : Unnormed MSE : 24.13515, RMSE : 4.85502, MAE : 2.40075, MAPE: 0.05761
-Horizon 7 : Unnormed MSE : 27.00556, RMSE : 5.13384, MAE : 2.52302, MAPE: 0.06152
-Horizon 8 : Unnormed MSE : 30.31397, RMSE : 5.43754, MAE : 2.66392, MAPE: 0.06613
-Horizon 9 : Unnormed MSE : 33.51767, RMSE : 5.71655, MAE : 2.80448, MAPE: 0.07047
-Horizon 10 : Unnormed MSE : 36.32576, RMSE : 5.94940, MAE : 2.91700, MAPE: 0.07399
-Horizon 11 : Unnormed MSE : 38.35821, RMSE : 6.11016, MAE : 2.97099, MAPE: 0.07615
+Horizon 0 : Unnormed MSE : 3.53100, RMSE : 1.87098, MAE : 1.09772, MAPE: 0.02107
+Horizon 1 : Unnormed MSE : 6.57820, RMSE : 2.54638, MAE : 1.38586, MAPE: 0.02753
+Horizon 2 : Unnormed MSE : 9.64392, RMSE : 3.08005, MAE : 1.62527, MAPE: 0.03389
+Horizon 3 : Unnormed MSE : 12.66754, RMSE : 3.52809, MAE : 1.82927, MAPE: 0.03996
+Horizon 4 : Unnormed MSE : 15.64037, RMSE : 3.91792, MAE : 2.00159, MAPE: 0.04511
+Horizon 5 : Unnormed MSE : 18.53787, RMSE : 4.26186, MAE : 2.15745, MAPE: 0.04987
+Horizon 6 : Unnormed MSE : 21.01981, RMSE : 4.53531, MAE : 2.27967, MAPE: 0.05378
+Horizon 7 : Unnormed MSE : 23.43905, RMSE : 4.78790, MAE : 2.40140, MAPE: 0.05763
+Horizon 8 : Unnormed MSE : 26.07579, RMSE : 5.04872, MAE : 2.57481, MAPE: 0.06217
+Horizon 9 : Unnormed MSE : 28.98372, RMSE : 5.32034, MAE : 2.73698, MAPE: 0.06668
+Horizon 10 : Unnormed MSE : 31.80252, RMSE : 5.56901, MAE : 2.87419, MAPE: 0.07061
+Horizon 11 : Unnormed MSE : 34.07523, RMSE : 5.76035, MAE : 2.96594, MAPE: 0.07358
 """
 
 pattern = re.compile(
