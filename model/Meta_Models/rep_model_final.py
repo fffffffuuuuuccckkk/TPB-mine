@@ -18,7 +18,7 @@ import copy
 
 from meta_patch import *
 from reconstruction import *
-from EAGT import EAGTGraphConstructor, SourceEvidenceCache
+from EAGT import EAGTGraphConstructor, SourceEvidenceCache, SAGTGraphConstructor
 from CRCT import CRCTGraphConstructor
 from CRCT.sparse_ops import as_bool
 import sys
@@ -133,12 +133,18 @@ class PatchFSL(nn.Module):
         self.eagt_debug = as_bool(PatchFSL_cfg.get('eagt_debug', False))
         self.eagt_sparse_loss_weight = float(PatchFSL_cfg.get('eagt_sparse_loss_weight', 0.0))
         self.eagt_evidence_loss_weight = float(PatchFSL_cfg.get('eagt_evidence_loss_weight', 0.0))
+        self.use_sagt = as_bool(PatchFSL_cfg.get('use_sagt', False))
+        self.sagt_debug = as_bool(PatchFSL_cfg.get('sagt_debug', False))
         self.use_crct = as_bool(PatchFSL_cfg.get('use_crct', False))
         self.crct_debug = as_bool(PatchFSL_cfg.get('crct_debug', False))
         self.latest_crct_debug = None
         self.latest_crct_aux_loss = {}
+        self.latest_sagt_debug = None
+        self.latest_sagt_aux_loss = {}
         self.latest_eagt_debug = None
         self._printed_online_eagt = False
+        if self.use_sagt and self.use_crct:
+            print("[SAGT] Both use_sagt and use_crct are enabled. In v1, SAGT is applied and CRCT is skipped.")
         if self.use_eagt and self.use_crct:
             print("[CRCT] Both use_eagt and use_crct are enabled. In v1, CRCT is applied after original TPB graph and EAGT is skipped.")
         # Pattern_Encoder
@@ -167,15 +173,24 @@ class PatchFSL(nn.Module):
             )
         else:
             self.task_ib_encoder = None
+        if self.use_sagt:
+            self.source_structure_cache = PatchFSL_cfg.get('source_structure_cache', None)
+            if self.source_structure_cache is None:
+                raise ValueError("use_sagt=True requires PatchFSL_cfg['source_structure_cache'].")
+            self.source_structure_cache.to(self.PatchFSL_cfg['device'])
+            self.sagt_graph_constructor = SAGTGraphConstructor(PatchFSL_cfg)
+        else:
+            self.source_structure_cache = None
+            self.sagt_graph_constructor = None
         if self.use_crct:
             self.crct_graph_constructor = CRCTGraphConstructor(PatchFSL_cfg)
         else:
             self.crct_graph_constructor = None
-        if self.use_eagt:
+        if self.use_eagt or self.use_sagt:
             self.source_evidence_cache = PatchFSL_cfg.get('source_evidence_cache', None)
             if self.source_evidence_cache is not None:
                 self.source_evidence_cache.to(self.PatchFSL_cfg['device'])
-            self.eagt_graph_constructor = EAGTGraphConstructor(PatchFSL_cfg)
+            self.eagt_graph_constructor = EAGTGraphConstructor(PatchFSL_cfg) if self.use_eagt else None
         else:
             self.source_evidence_cache = None
             self.eagt_graph_constructor = None
@@ -223,18 +238,28 @@ class PatchFSL(nn.Module):
             FCmodel.train()
             STmodel.train()
             Reconsmodel.train()
+            if self.sagt_graph_constructor is not None:
+                self.sagt_graph_constructor.train()
         else:
             Pattern_Day.eval()
             Pattern_Encoder.eval()
             FCmodel.eval()
             STmodel.eval()
             Reconsmodel.eval()
+            if self.sagt_graph_constructor is not None:
+                self.sagt_graph_constructor.eval()
         x, y, means, stds = data_i.x, data_i.y, data_i.means, data_i.stds
         # print("x shape is : {}, y shape is : {}".format(x.shape, y.shape))
         x, y, means, stds, A = torch.tensor(x).to(self.PatchFSL_cfg['device']), torch.tensor(y).to(self.PatchFSL_cfg['device']),torch.tensor(means).to(self.PatchFSL_cfg['device']),torch.tensor(stds).to(self.PatchFSL_cfg['device']),torch.tensor(A,dtype=torch.float32).to(self.PatchFSL_cfg['device'])
         zero = torch.zeros((), device=x.device, dtype=x.dtype)
         ib_losses = {"pattern_ib_loss": zero, "meta_ib_loss": zero}
         ib_losses.update({"eagt_sparse_loss": zero, "eagt_evidence_loss": zero})
+        ib_losses.update({
+            "sagt_sparse_loss": zero,
+            "sagt_rank_loss": zero,
+            "sagt_res_loss": zero,
+            "sagt_spec_loss": zero,
+        })
         ib_losses.update({
             "crct_sparse_loss": zero,
             "crct_sharp_loss": zero,
@@ -280,7 +305,23 @@ class PatchFSL(nn.Module):
             
             A_patch = Reconsmodel(pattern)
             A_original = A_patch
-            if self.use_crct:
+            if self.use_sagt:
+                A_patch, sagt_aux_loss, sagt_debug = self.sagt_graph_constructor(
+                    eagt_history,
+                    A_original=A_original,
+                    source_structure_cache=self.source_structure_cache,
+                    source_evidence_cache=self.source_evidence_cache,
+                    return_debug=self.sagt_debug
+                )
+                for key, value in sagt_aux_loss.items():
+                    ib_losses[key] = value
+                self.latest_sagt_aux_loss = {
+                    key: value.detach() for key, value in sagt_aux_loss.items()
+                }
+                self.latest_sagt_debug = sagt_debug if self.sagt_debug else None
+                self.latest_crct_debug = None
+                self.latest_eagt_debug = None
+            elif self.use_crct:
                 A_patch, crct_aux_loss, crct_debug = self.crct_graph_constructor(
                     eagt_history,
                     A_original=A_original,
@@ -313,9 +354,11 @@ class PatchFSL(nn.Module):
                 ib_losses["eagt_evidence_loss"] = eagt_aux_loss["eagt_evidence_loss"]
                 self.latest_eagt_debug = eagt_debug if self.eagt_debug else None
                 self.latest_crct_debug = None
+                self.latest_sagt_debug = None
             else:
                 self.latest_eagt_debug = None
                 self.latest_crct_debug = None
+                self.latest_sagt_debug = None
         
         A_list = [A_patch, A_patch.permute(0,2,1)]
         
@@ -366,6 +409,11 @@ class STRep(nn.Module):
         self.use_eagt = as_bool(PatchFSL_cfg.get('use_eagt', False))
         self.eagt_sparse_loss_weight = float(PatchFSL_cfg.get('eagt_sparse_loss_weight', 0.0))
         self.eagt_evidence_loss_weight = float(PatchFSL_cfg.get('eagt_evidence_loss_weight', 0.0))
+        self.use_sagt = as_bool(PatchFSL_cfg.get('use_sagt', False))
+        self.sagt_sparse_loss_weight = float(PatchFSL_cfg.get('sagt_sparse_loss_weight', 0.0))
+        self.sagt_rank_loss_weight = float(PatchFSL_cfg.get('sagt_rank_loss_weight', 0.0))
+        self.sagt_res_loss_weight = float(PatchFSL_cfg.get('sagt_res_loss_weight', 0.0))
+        self.sagt_spec_loss_weight = float(PatchFSL_cfg.get('sagt_spec_loss_weight', 0.0))
         self.use_crct = as_bool(PatchFSL_cfg.get('use_crct', False))
         self.crct_sparse_loss_weight = float(PatchFSL_cfg.get('crct_sparse_loss_weight', 0.0))
         self.crct_sharp_loss_weight = float(PatchFSL_cfg.get('crct_sharp_loss_weight', 0.0))
@@ -375,9 +423,10 @@ class STRep(nn.Module):
         self.crct_unknown_reg_loss_weight = float(PatchFSL_cfg.get('crct_unknown_reg_weight', PatchFSL_cfg.get('crct_unknown_reg_loss_weight', 0.0)))
         self.debug_max_batches = int(PatchFSL_cfg.get('debug_max_batches', -1))
         self.ib_enabled = self.use_pattern_ib or self.use_meta_ib
-        self.extra_loss_enabled = self.ib_enabled or self.use_eagt or self.use_crct
+        self.extra_loss_enabled = self.ib_enabled or self.use_eagt or self.use_crct or self.use_sagt
         self.last_ib_log = {}
         self.last_crct_log = {}
+        self.last_sagt_log = {}
 
         self.model = PatchFSL(data_args, model_args, task_args,PatchFSL_cfg).to(self.device)
         for name, params in self.model.named_parameters():
@@ -397,7 +446,9 @@ class STRep(nn.Module):
                        eagt_sparse_loss=None, eagt_evidence_loss=None,
                        crct_sparse_loss=None, crct_sharp_loss=None,
                        crct_balance_loss=None, crct_consistency_loss=None,
-                       crct_relation_kd_loss=None, crct_unknown_reg_loss=None):
+                       crct_relation_kd_loss=None, crct_unknown_reg_loss=None,
+                       sagt_sparse_loss=None, sagt_rank_loss=None,
+                       sagt_res_loss=None, sagt_spec_loss=None):
         total_loss = pred_loss
         if self.use_pattern_ib and pattern_ib_loss is not None:
             total_loss = total_loss + self.pattern_ib_weight * pattern_ib_loss
@@ -420,6 +471,15 @@ class STRep(nn.Module):
                 total_loss = total_loss + self.crct_relation_kd_loss_weight * crct_relation_kd_loss
             if crct_unknown_reg_loss is not None:
                 total_loss = total_loss + self.crct_unknown_reg_loss_weight * crct_unknown_reg_loss
+        if self.use_sagt:
+            if sagt_sparse_loss is not None:
+                total_loss = total_loss + self.sagt_sparse_loss_weight * sagt_sparse_loss
+            if sagt_rank_loss is not None:
+                total_loss = total_loss + self.sagt_rank_loss_weight * sagt_rank_loss
+            if sagt_res_loss is not None:
+                total_loss = total_loss + self.sagt_res_loss_weight * sagt_res_loss
+            if sagt_spec_loss is not None:
+                total_loss = total_loss + self.sagt_spec_loss_weight * sagt_spec_loss
         return total_loss
 
     def _crct_loss_args(self, ib_losses):
@@ -440,6 +500,23 @@ class STRep(nn.Module):
             "crct_consistency_loss", "crct_relation_kd_loss",
             "crct_unknown_reg_loss",
         ]:
+            value = ib_losses.get(key, None)
+            if value is not None:
+                store.setdefault(key, []).append(value.detach().item())
+        store.setdefault("total_loss", []).append(total_loss.detach().item())
+
+    def _sagt_loss_args(self, ib_losses):
+        return [
+            ib_losses.get("sagt_sparse_loss", None),
+            ib_losses.get("sagt_rank_loss", None),
+            ib_losses.get("sagt_res_loss", None),
+            ib_losses.get("sagt_spec_loss", None),
+        ]
+
+    def _append_sagt_logs(self, store, ib_losses, total_loss):
+        if not self.use_sagt:
+            return
+        for key in ["sagt_sparse_loss", "sagt_rank_loss", "sagt_res_loss", "sagt_spec_loss"]:
             value = ib_losses.get(key, None)
             if value is not None:
                 store.setdefault(key, []).append(value.detach().item())
@@ -475,7 +552,8 @@ class STRep(nn.Module):
             "use_pattern_ib": self.use_pattern_ib,
             "use_meta_ib": self.use_meta_ib,
             "use_eagt": self.use_eagt,
-            "use_crct": self.use_crct
+            "use_crct": self.use_crct,
+            "use_sagt": self.use_sagt
         }
     
     def get_per_step_loss_importance_vector(self):
@@ -543,9 +621,9 @@ class STRep(nn.Module):
         total_pred_loss = []
         total_pattern_ib_loss = []
         total_meta_ib_loss = []
-        total_crct_loss = {}
         total_total_loss = []
         total_crct_loss = {}
+        total_sagt_loss = {}
         
         # taskwise loss, precision
         task_losses = []
@@ -585,7 +663,8 @@ class STRep(nn.Module):
                     meta_ib_loss,
                     ib_losses.get("eagt_sparse_loss", None),
                     ib_losses.get("eagt_evidence_loss", None),
-                    *self._crct_loss_args(ib_losses)
+                    *self._crct_loss_args(ib_losses),
+                    *self._sagt_loss_args(ib_losses)
                 )
                 grad = torch.autograd.grad(loss, self.model.parameters(), allow_unused=True, retain_graph=self.extra_loss_enabled)
                 grad = list(grad)
@@ -627,7 +706,8 @@ class STRep(nn.Module):
                     meta_ib_loss,
                     ib_losses_q.get("eagt_sparse_loss", None),
                     ib_losses_q.get("eagt_evidence_loss", None),
-                    *self._crct_loss_args(ib_losses_q)
+                    *self._crct_loss_args(ib_losses_q),
+                    *self._sagt_loss_args(ib_losses_q)
                 )
                 if self.ib_enabled:
                     total_pred_loss.append(pred_loss_q.detach().item())
@@ -635,6 +715,7 @@ class STRep(nn.Module):
                     total_meta_ib_loss.append(meta_ib_loss.detach().item())
                     total_total_loss.append(loss_q.detach().item())
                 self._append_crct_logs(total_crct_loss, ib_losses_q, loss_q)
+                self._append_sagt_logs(total_sagt_loss, ib_losses_q, loss_q)
                 
                 # grad_q = torch.autograd.grad(loss, self.model.parameters(), allow_unused=True, retain_graph = True)
                 # grad_q = list(grad_q)
@@ -699,6 +780,11 @@ class STRep(nn.Module):
                 key: float(np.mean(value)) if len(value) > 0 else 0.0
                 for key, value in total_crct_loss.items()
             }
+        if self.use_sagt:
+            self.last_sagt_log = {
+                key: float(np.mean(value)) if len(value) > 0 else 0.0
+                for key, value in total_sagt_loss.items()
+            }
 
         # return MSELoss, mse, rmse, mae, mape
         return model_loss.detach().cpu().numpy(),np.mean(total_mse), np.mean(total_rmse), np.mean(total_mae),np.mean(total_mape)
@@ -717,6 +803,7 @@ class STRep(nn.Module):
         total_pattern_ib_loss = []
         total_meta_ib_loss = []
         total_crct_loss = {}
+        total_sagt_loss = {}
         
         if self.debug_max_batches > 0:
             end = min(end, start + self.debug_max_batches)
@@ -741,12 +828,14 @@ class STRep(nn.Module):
                     meta_ib_loss,
                     ib_losses.get("eagt_sparse_loss", None),
                     ib_losses.get("eagt_evidence_loss", None),
-                    *self._crct_loss_args(ib_losses)
+                    *self._crct_loss_args(ib_losses),
+                    *self._sagt_loss_args(ib_losses)
                 )
                 total_pred_loss.append(pred_loss.detach().item())
                 total_pattern_ib_loss.append(ib_losses["pattern_ib_loss"].detach().item())
                 total_meta_ib_loss.append(meta_ib_loss.detach().item())
                 self._append_crct_logs(total_crct_loss, ib_losses, loss)
+                self._append_sagt_logs(total_sagt_loss, ib_losses, loss)
             else:
                 out,y,Ax = self.model(data_i, A_gnd)
                 loss = loss_fn(out, y)
@@ -775,6 +864,11 @@ class STRep(nn.Module):
             self.last_crct_log = {
                 key: float(np.mean(value)) if len(value) > 0 else 0.0
                 for key, value in total_crct_loss.items()
+            }
+        if self.use_sagt:
+            self.last_sagt_log = {
+                key: float(np.mean(value)) if len(value) > 0 else 0.0
+                for key, value in total_sagt_loss.items()
             }
         return total_mse,total_rmse, total_mae, total_mape, total_loss
 
@@ -825,7 +919,7 @@ class STRep(nn.Module):
             return
         curr_time = datetime.datetime.now().strftime(
     "%Y%m%d-%H%M%S")
-        checkpoint_enabled = as_bool(self.PatchFSL_cfg.get('enable_checkpoint', True)) and (self.ib_enabled or self.use_eagt or self.use_crct)
+        checkpoint_enabled = as_bool(self.PatchFSL_cfg.get('enable_checkpoint', True)) and (self.ib_enabled or self.use_eagt or self.use_crct or self.use_sagt)
         if checkpoint_enabled:
             model_path = Path(self.PatchFSL_cfg.get('checkpoint_dir', self.PatchFSL_cfg.get('ib_save_dir', './save/ib_runs')))
             checkpoint_prefix = self.PatchFSL_cfg.get('checkpoint_prefix', 'tpb_ib')
@@ -876,6 +970,14 @@ class STRep(nn.Module):
                     self.last_crct_log.get("crct_relation_kd_loss", 0.0),
                     self.last_crct_log.get("crct_unknown_reg_loss", 0.0),
                     self.last_crct_log.get("total_loss", 0.0)
+                ))
+            if self.use_sagt:
+                print("SAGT loss sparse={:.5f}, rank={:.5f}, res={:.5f}, spec={:.5f}, total={:.5f}".format(
+                    self.last_sagt_log.get("sagt_sparse_loss", 0.0),
+                    self.last_sagt_log.get("sagt_rank_loss", 0.0),
+                    self.last_sagt_log.get("sagt_res_loss", 0.0),
+                    self.last_sagt_log.get("sagt_spec_loss", 0.0),
+                    self.last_sagt_log.get("total_loss", 0.0)
                 ))
             
             mae_loss = np.mean(total_mae)

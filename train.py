@@ -18,8 +18,9 @@ from reconstruction import *
 from TSmodel import *
 # from maml_model import *
 from rep_model_final import *
-from EAGT import SourceEvidenceCache
+from EAGT import SourceEvidenceCache, SourceStructureCache
 from EAGT.debug_utils import dump_evidence_csv
+from EAGT.sagt_debug_utils import dump_sagt_csv
 from CRCT.debug_utils import dump_crct_csv, dump_relation_usage
 from pathlib import Path
 import random
@@ -95,6 +96,39 @@ parser.add_argument('--crct_relation_kd_weight', default=0.0, type=float)
 parser.add_argument('--crct_unknown_reg_weight', default=0.0, type=float)
 parser.add_argument('--crct_dump_every', default=0, type=int)
 parser.add_argument('--crct_dump_top_edges', default=20, type=int)
+parser.add_argument('--use_sagt', default=0, type=int)
+parser.add_argument('--sagt_debug', default=0, type=int)
+parser.add_argument('--sagt_cache_dir', default='./save/sagt_cache', type=str)
+parser.add_argument('--sagt_rebuild_cache', default=0, type=int)
+parser.add_argument('--sagt_use_lowrank', default=1, type=int)
+parser.add_argument('--sagt_lowrank_rank', default=8, type=int)
+parser.add_argument('--sagt_lowrank_source', default='corr_lagcorr', type=str, choices=['corr', 'lagcorr', 'corr_lagcorr'])
+parser.add_argument('--sagt_lowrank_abs', default=1, type=int)
+parser.add_argument('--sagt_lowrank_row_softmax', default=1, type=int)
+parser.add_argument('--sagt_use_source_roles', default=1, type=int)
+parser.add_argument('--sagt_role_dim', default=8, type=int)
+parser.add_argument('--sagt_role_iters', default=80, type=int)
+parser.add_argument('--sagt_role_lr', default=0.05, type=float)
+parser.add_argument('--sagt_role_eps', default=1e-8, type=float)
+parser.add_argument('--sagt_role_max_nodes', default=800, type=int)
+parser.add_argument('--sagt_role_source_matrix', default='adj_corr', type=str, choices=['adj', 'corr', 'adj_corr'])
+parser.add_argument('--sagt_role_nonnegative', default=1, type=int)
+parser.add_argument('--sagt_use_spectral_signature', default=1, type=int)
+parser.add_argument('--sagt_spectral_rank', default=16, type=int)
+parser.add_argument('--sagt_spectral_moments', default=4, type=int)
+parser.add_argument('--sagt_spectral_tau', default=1.0, type=float)
+parser.add_argument('--sagt_alpha_lowrank', default=0.3, type=float)
+parser.add_argument('--sagt_beta_src_role', default=0.4, type=float)
+parser.add_argument('--sagt_gamma_eagt', default=0.2, type=float)
+parser.add_argument('--sagt_delta_res', default=0.1, type=float)
+parser.add_argument('--sagt_sparse_topk', default=20, type=int)
+parser.add_argument('--sagt_sparse_loss_weight', default=0.0, type=float)
+parser.add_argument('--sagt_rank_loss_weight', default=0.0, type=float)
+parser.add_argument('--sagt_res_loss_weight', default=0.0, type=float)
+parser.add_argument('--sagt_spec_loss_weight', default=0.0, type=float)
+parser.add_argument('--sagt_dump_every', default=0, type=int)
+parser.add_argument('--sagt_dump_top_edges', default=30, type=int)
+parser.add_argument('--sagt_dump_dir', default='./save/sagt_debug', type=str)
 parser.add_argument('--enable_checkpoint', default=None, type=int)
 parser.add_argument('--resume', default=None, type=int)
 parser.add_argument('--resume_path', default=None, type=str)
@@ -168,6 +202,42 @@ EAGT_DEFAULTS = {
     "eagt_dump_every": 0,
     "eagt_dump_top_edges": 20,
     "eagt_random_evidence": 0
+}
+
+SAGT_DEFAULTS = {
+    "use_sagt": 0,
+    "sagt_debug": 0,
+    "sagt_cache_dir": "./save/sagt_cache",
+    "sagt_rebuild_cache": 0,
+    "sagt_use_lowrank": 1,
+    "sagt_lowrank_rank": 8,
+    "sagt_lowrank_source": "corr_lagcorr",
+    "sagt_lowrank_abs": 1,
+    "sagt_lowrank_row_softmax": 1,
+    "sagt_use_source_roles": 1,
+    "sagt_role_dim": 8,
+    "sagt_role_iters": 80,
+    "sagt_role_lr": 0.05,
+    "sagt_role_eps": 1e-8,
+    "sagt_role_max_nodes": 800,
+    "sagt_role_source_matrix": "adj_corr",
+    "sagt_role_nonnegative": 1,
+    "sagt_use_spectral_signature": 1,
+    "sagt_spectral_rank": 16,
+    "sagt_spectral_moments": 4,
+    "sagt_spectral_tau": 1.0,
+    "sagt_alpha_lowrank": 0.3,
+    "sagt_beta_src_role": 0.4,
+    "sagt_gamma_eagt": 0.2,
+    "sagt_delta_res": 0.1,
+    "sagt_sparse_topk": 20,
+    "sagt_sparse_loss_weight": 0.0,
+    "sagt_rank_loss_weight": 0.0,
+    "sagt_res_loss_weight": 0.0,
+    "sagt_spec_loss_weight": 0.0,
+    "sagt_dump_every": 0,
+    "sagt_dump_top_edges": 30,
+    "sagt_dump_dir": "./save/sagt_debug"
 }
 
 CRCT_DEFAULTS = {
@@ -270,6 +340,32 @@ def build_eagt_args(config, args):
     return eagt_args
 
 
+def build_sagt_args(config, args):
+    sagt_cfg = config.get("sagt", {}) or {}
+    eagt_cfg = config.get("eagt", {}) or {}
+    sagt_args = {}
+    for key, default in SAGT_DEFAULTS.items():
+        if key in config:
+            value = config[key]
+        elif key in sagt_cfg:
+            value = sagt_cfg[key]
+        elif key in eagt_cfg:
+            value = eagt_cfg[key]
+        else:
+            value = default
+        if _arg_was_set(key):
+            value = getattr(args, key)
+        sagt_args[key] = value
+    for key in [
+        "use_sagt", "sagt_debug", "sagt_rebuild_cache", "sagt_use_lowrank",
+        "sagt_lowrank_abs", "sagt_lowrank_row_softmax",
+        "sagt_use_source_roles", "sagt_role_nonnegative",
+        "sagt_use_spectral_signature"
+    ]:
+        sagt_args[key] = int(as_bool(sagt_args[key]))
+    return sagt_args
+
+
 def build_crct_args(config, args):
     crct_cfg = config.get("crct", {}) or {}
     crct_args = {}
@@ -321,6 +417,22 @@ def configure_crct_checkpoint_defaults(ckpt_args, crct_args, target_city):
     return ckpt_args
 
 
+def configure_sagt_checkpoint_defaults(ckpt_args, sagt_args, target_city):
+    if not as_bool(sagt_args.get("use_sagt", 0)):
+        return ckpt_args
+    current_prefix = ckpt_args.get("checkpoint_prefix", IB_DEFAULTS["checkpoint_prefix"])
+    if current_prefix == IB_DEFAULTS["checkpoint_prefix"] or str(current_prefix).startswith("tpb_eagt"):
+        ckpt_args["checkpoint_prefix"] = "tpb_sagt_r{}_role{}_top{}".format(
+            int(sagt_args.get("sagt_lowrank_rank", 8)),
+            int(sagt_args.get("sagt_role_dim", 8)),
+            int(sagt_args.get("sagt_sparse_topk", 20))
+        )
+    current_dir = ckpt_args.get("checkpoint_dir", IB_DEFAULTS["checkpoint_dir"])
+    if current_dir == IB_DEFAULTS["checkpoint_dir"] or str(current_dir).endswith("eagt_runs"):
+        ckpt_args["checkpoint_dir"] = "./save/sagt_runs"
+    return ckpt_args
+
+
 
 def _safe_name(x):
     return str(x).replace("/", "_").replace(" ", "").replace(",", "_")
@@ -330,6 +442,27 @@ def build_eagt_cache_path(eagt_args, source_cities, target_city):
     source_name = "_".join([_safe_name(c) for c in source_cities])
     target_name = _safe_name(target_city)
     return Path(eagt_args["eagt_cache_dir"]) / "source_{}_target_{}.pt".format(source_name, target_name)
+
+
+def build_sagt_cache_path(sagt_args, source_cities, target_city):
+    source_name = "_".join([_safe_name(c) for c in source_cities])
+    target_name = _safe_name(target_city)
+    return Path(sagt_args["sagt_cache_dir"]) / "source_{}_target_{}_role{}.pt".format(
+        source_name, target_name, int(sagt_args["sagt_role_dim"])
+    )
+
+
+def _collect_source_data_adj(source_dataset, source_cities):
+    source_data = {}
+    source_adj = {}
+    for city in source_cities:
+        if city in source_dataset.x_list:
+            source_data[city] = source_dataset.x_list[city]
+        if city in source_dataset.data_args and "adjacency_matrix_path" in source_dataset.data_args[city]:
+            source_adj[city] = np.load(source_dataset.data_args[city]["adjacency_matrix_path"])
+        elif city in source_dataset.A_list:
+            source_adj[city] = source_dataset.A_list[city]
+    return source_data, source_adj
 
 
 def build_or_load_eagt_cache(source_dataset, source_cities, target_city, eagt_args, device):
@@ -362,6 +495,33 @@ def build_or_load_eagt_cache(source_dataset, source_cities, target_city, eagt_ar
     print("[EAGT] cache path={}, source evidences={}, feature dim={}".format(
         cache_path, feats.shape[0], feats.shape[1] if feats.dim() == 2 else 0
     ))
+    return cache, cache_path
+
+
+def build_or_load_sagt_cache(source_dataset, source_cities, target_city, sagt_args, device):
+    cache_path = build_sagt_cache_path(sagt_args, source_cities, target_city)
+    cache = SourceStructureCache(sagt_args["sagt_cache_dir"], device="cpu")
+    if cache_path.exists() and not as_bool(sagt_args["sagt_rebuild_cache"]):
+        cache.load(cache_path)
+        print("[SAGT] loaded source structure cache: {}".format(cache_path))
+    else:
+        source_data, source_adj = _collect_source_data_adj(source_dataset, source_cities)
+        if len(source_data) == 0:
+            raise ValueError("[SAGT] cannot build source structure cache: no source city data found")
+        cache.build_from_source_data(source_data, source_adj, args=sagt_args)
+        cache.save(cache_path)
+        print("[SAGT] built source structure cache: {}".format(cache_path))
+    cache.to(device)
+    sig = cache.get_spectral_signatures()
+    print("[SAGT] use_sagt={}, lowrank_rank={}, role_dim={}, alpha/beta/gamma/delta={}/{}/{}/{}".format(
+        sagt_args["use_sagt"], sagt_args["sagt_lowrank_rank"], sagt_args["sagt_role_dim"],
+        sagt_args["sagt_alpha_lowrank"], sagt_args["sagt_beta_src_role"],
+        sagt_args["sagt_gamma_eagt"], sagt_args["sagt_delta_res"]
+    ))
+    print("[SAGT] source structure cache path={}".format(cache_path))
+    print("[SAGT] source cities={}".format(cache.get_city_names()))
+    print("[SAGT] spectral signature shape={}".format(tuple(sig.shape) if sig is not None else None))
+    print("[SAGT] role_B count={}".format(len(cache.get_role_B())))
     return cache, cache_path
 
 
@@ -416,6 +576,36 @@ def maybe_dump_crct(rep_model, crct_args, epoch, batch_id=0, force=False):
     print("[CRCT] target candidate edges={}".format(debug_dict.get("target_candidate_count", 0)))
     print("[CRCT] attribution csv: {}".format(csv_path))
     print("[CRCT] relation usage csv: {}".format(usage_path))
+    return csv_path
+
+
+def maybe_dump_sagt(rep_model, source_structure_cache, sagt_args, epoch, batch_id=0, force=False):
+    if not as_bool(sagt_args.get("use_sagt", 0)) or not as_bool(sagt_args.get("sagt_debug", 0)):
+        return None
+    dump_every = int(sagt_args.get("sagt_dump_every", 0))
+    if not force and dump_every <= 0:
+        return None
+    if not force and (batch_id + 1) % dump_every != 0:
+        return None
+    debug_dict = getattr(rep_model.model, "latest_sagt_debug", None)
+    if not debug_dict:
+        return None
+    dump_dir = Path(sagt_args["sagt_dump_dir"])
+    csv_path = dump_dir / "sagt_epoch{}_batch{}.csv".format(epoch, batch_id)
+    dump_sagt_csv(debug_dict, source_structure_cache, csv_path, top_edges=sagt_args["sagt_dump_top_edges"])
+    print("[SAGT] epoch={}, batch={}".format(epoch, batch_id))
+    print("[SAGT] A_lowrank stats: {}".format(debug_dict.get("A_lowrank_stats", {})))
+    print("[SAGT] A_src_role stats: {}".format(debug_dict.get("A_src_role_stats", {})))
+    print("[SAGT] A_eagt stats: {}".format(debug_dict.get("A_eagt_stats", {})))
+    print("[SAGT] A_res stats: {}".format(debug_dict.get("A_res_stats", {})))
+    print("[SAGT] A_sagt stats: {}".format(debug_dict.get("A_sagt_stats", {})))
+    print("[SAGT] A_final stats: {}".format(debug_dict.get("A_final_stats", {})))
+    print("[SAGT] source city weights: {}".format(
+        [round(float(x), 6) for x in debug_dict.get("source_city_weight").detach().cpu().tolist()]
+        if debug_dict.get("source_city_weight", None) is not None else []
+    ))
+    print("[SAGT] target candidate edges={}".format(debug_dict.get("target_candidate_count", 0)))
+    print("[SAGT] attribution csv: {}".format(csv_path))
     return csv_path
 
 def _fmt_float_for_name(x):
@@ -561,6 +751,7 @@ if __name__ == '__main__':
     config = config or {}
     ib_args = build_ib_args(config)
     eagt_args = build_eagt_args(config, args)
+    sagt_args = build_sagt_args(config, args)
     crct_args = build_crct_args(config, args)
     ib_args = apply_checkpoint_arg_overrides(ib_args, args)
 
@@ -592,18 +783,21 @@ if __name__ == '__main__':
     PatchFSL_cfg.update({'test_dataset': args.test_dataset, 'config': config})
     PatchFSL_cfg.update(ib_args)
     PatchFSL_cfg.update(eagt_args)
+    PatchFSL_cfg.update(sagt_args)
     PatchFSL_cfg.update(crct_args)
     ib_enabled = ib_args["use_pattern_ib"] or ib_args["use_meta_ib"]
     eagt_enabled = as_bool(eagt_args["use_eagt"])
+    sagt_enabled = as_bool(sagt_args["use_sagt"])
     crct_enabled = as_bool(crct_args["use_crct"])
     ib_args = configure_eagt_checkpoint_defaults(ib_args, eagt_args, args.test_dataset)
     ib_args = configure_crct_checkpoint_defaults(ib_args, crct_args, args.test_dataset)
+    ib_args = configure_sagt_checkpoint_defaults(ib_args, sagt_args, args.test_dataset)
     PatchFSL_cfg.update(ib_args)
     dry_run_enabled = (
         (eagt_enabled and as_bool(eagt_args.get("eagt_dry_run", 0))) or
         (crct_enabled and as_bool(crct_args.get("crct_dry_run", 0)))
     )
-    checkpoint_enabled = as_bool(ib_args["enable_checkpoint"]) and (ib_enabled or eagt_enabled or crct_enabled) and not dry_run_enabled
+    checkpoint_enabled = as_bool(ib_args["enable_checkpoint"]) and (ib_enabled or eagt_enabled or crct_enabled or sagt_enabled) and not dry_run_enabled
     if ib_enabled:
         print("INFO: IB enabled. Pattern IB={}, Meta IB={}".format(ib_args["use_pattern_ib"], ib_args["use_meta_ib"]))
     if checkpoint_enabled:
@@ -617,6 +811,12 @@ if __name__ == '__main__':
         ))
         if eagt_enabled:
             print("[CRCT] Both use_eagt and use_crct are enabled. CRCT v1 skips EAGT inside PatchFSL.")
+    if sagt_enabled:
+        print("[SAGT] use_sagt={}, lowrank_rank={}, role_dim={}, alpha/beta/gamma/delta={}/{}/{}/{}".format(
+            sagt_args["use_sagt"], sagt_args["sagt_lowrank_rank"], sagt_args["sagt_role_dim"],
+            sagt_args["sagt_alpha_lowrank"], sagt_args["sagt_beta_src_role"],
+            sagt_args["sagt_gamma_eagt"], sagt_args["sagt_delta_res"]
+        ))
 
     ## dataset
     source_dataset = traffic_dataset(data_args, task_args['maml'], list(source_city_list), "source_train", test_data=args.test_dataset)
@@ -626,7 +826,7 @@ if __name__ == '__main__':
         print("source dataset has {}. X : {}, y : {}".format(data,source_dataset.x_list[data].shape,source_dataset.y_list[data].shape))
 
     source_evidence_cache = None
-    if eagt_enabled and not crct_enabled:
+    if eagt_enabled and (not crct_enabled or sagt_enabled):
         source_evidence_cache, eagt_cache_path = build_or_load_eagt_cache(
             source_dataset,
             source_city_list,
@@ -636,9 +836,20 @@ if __name__ == '__main__':
         )
         PatchFSL_cfg["source_evidence_cache"] = source_evidence_cache
 
+    source_structure_cache = None
+    if sagt_enabled:
+        source_structure_cache, sagt_cache_path = build_or_load_sagt_cache(
+            source_dataset,
+            source_city_list,
+            args.test_dataset,
+            sagt_args,
+            args.device
+        )
+        PatchFSL_cfg["source_structure_cache"] = source_structure_cache
+
     finetune_dataset = traffic_dataset(data_args, task_args['maml'], list(source_city_list), 'target_maml', test_data=args.test_dataset)
     test_dataset = traffic_dataset(data_args, task_args['maml'], list(source_city_list), 'test', test_data=args.test_dataset)
-    print(data_args, task_args, model_args, PatchFSL_cfg if (ib_enabled or eagt_enabled or crct_enabled) else PatchFSL_cfg_print, args.STmodel)
+    print(data_args, task_args, model_args, PatchFSL_cfg if (ib_enabled or eagt_enabled or crct_enabled or sagt_enabled) else PatchFSL_cfg_print, args.STmodel)
     rep_model = STRep(data_args, task_args, model_args, PatchFSL_cfg, args.STmodel)
     best_loss = 9999999999999.0
     best_model = None
@@ -648,7 +859,7 @@ if __name__ == '__main__':
     finetune_resume_path = None
     if ib_args["resume"]:
         if not checkpoint_enabled:
-            raise ValueError("resume=True requires use_pattern_ib, use_meta_ib, use_eagt, or use_crct with enable_checkpoint=True.")
+            raise ValueError("resume=True requires use_pattern_ib, use_meta_ib, use_eagt, use_crct, or use_sagt with enable_checkpoint=True.")
 
         resume_path = resolve_resume_path(ib_args, args.test_dataset)
         resume_stage, resume_epoch, best_metric = peek_checkpoint_stage(resume_path)
@@ -718,6 +929,14 @@ if __name__ == '__main__':
                 rep_model.last_crct_log.get("crct_unknown_reg_loss", 0.0),
                 rep_model.last_crct_log.get("total_loss", 0.0)
             ))
+        if sagt_enabled:
+            print("SAGT loss sparse={:.5f}, rank={:.5f}, res={:.5f}, spec={:.5f}, total={:.5f}".format(
+                rep_model.last_sagt_log.get("sagt_sparse_loss", 0.0),
+                rep_model.last_sagt_log.get("sagt_rank_loss", 0.0),
+                rep_model.last_sagt_log.get("sagt_res_loss", 0.0),
+                rep_model.last_sagt_log.get("sagt_spec_loss", 0.0),
+                rep_model.last_sagt_log.get("total_loss", 0.0)
+            ))
         if checkpoint_enabled:
             checkpoint_dir = Path(ib_args["checkpoint_dir"])
             checkpoint_prefix = ib_args["checkpoint_prefix"]
@@ -759,6 +978,15 @@ if __name__ == '__main__':
             if as_bool(crct_args["crct_dry_run"]):
                 print("[CRCT] dry_run finished.")
                 sys.exit(0)
+        if sagt_enabled:
+            maybe_dump_sagt(
+                rep_model,
+                source_structure_cache,
+                sagt_args,
+                epoch=i,
+                batch_id=0,
+                force=False
+            )
     rep_model.finetuning(
         finetune_dataset,
         test_dataset,
